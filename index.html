@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ticket Studio ✦ Inline & Gradient</title>
+<title>Ticket Studio ✦</title>
 <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,700;1,700&family=Special+Elite&display=swap" rel="stylesheet">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -162,9 +162,6 @@ body {
 .ticket-wrapper { display: none; flex-direction: column; align-items: center; }
 .ticket-wrapper.active { display: flex; }
 .ticket-container { position: relative; }
-
-.bg-grad { background-image: var(--grad); }
-.text-grad { background-image: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
 /* ════════════════════════════════
    1. MOVIE TICKET
@@ -512,21 +509,37 @@ tr:hover .rc-del-btn { opacity: 1; }
 /* ── 전역 상태 ── */
 let currentTab = 'movie';
 
-/* ── 그라데이션 업데이트 및 웹킷 강제 리페인트 버그 픽스 ── */
+/* ── [핵심 픽스] 동적 스타일 태그 생성 함수 ── */
+// 웹킷 브라우저의 CSS 변수 렌더링 버그를 우회하기 위해,
+// 색상이 변경될 때마다 <style> 태그를 아예 새로 작성해서 강제로 리페인트를 일으킵니다.
 function updateGrad() {
   const c1 = document.getElementById('c1').value;
   const c2 = document.getElementById('c2').value;
   const gradString = `linear-gradient(135deg, ${c1}, ${c2})`;
 
-  // CSS 변수 최신화
+  // CSS 변수 업데이트
   document.documentElement.style.setProperty('--c1', c1);
   document.documentElement.style.setProperty('--c2', c2);
   document.documentElement.style.setProperty('--grad', gradString);
 
-  // [핵심 해결] Chrome/Safari에서 변수로 지정된 배경을 갱신하지 않는 버그 우회용 강제 인라인 스타일 부여
-  document.querySelectorAll('.text-grad, .bg-grad, .logo-icon, .export-btn').forEach(el => {
-    el.style.backgroundImage = gradString;
-  });
+  // 동적으로 <style> 태그를 생성/덮어쓰기 하여 강제로 렌더링
+  let styleTag = document.getElementById('dynamic-grad-style');
+  if (!styleTag) {
+    styleTag = document.createElement('style');
+    styleTag.id = 'dynamic-grad-style';
+    document.head.appendChild(styleTag);
+  }
+  
+  styleTag.textContent = `
+    .text-grad, .logo-icon {
+        background-image: ${gradString} !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+    }
+    .bg-grad, .export-btn {
+        background-image: ${gradString} !important;
+    }
+  `;
 }
 
 /* ── 탭 전환 ── */
@@ -698,7 +711,11 @@ async function exportPNG() {
       onclone: (doc) => {
         const cloneEl = doc.getElementById(`export-${currentTab}`);
         
-        // 텍스트 누락 방지를 위한 안전한 스타일 삽입
+        // 동적으로 만들어진 그라데이션 강제 스타일 태그가 같이 복사되었다면 제거합니다.
+        // html2canvas가 이 스타일을 렌더링하면 또 글씨를 투명하게 날려버리기 때문입니다.
+        const dynStyle = doc.getElementById('dynamic-grad-style');
+        if (dynStyle) dynStyle.remove();
+        
         const st = doc.createElement('style');
         st.textContent = `
           /* 입력창 숨김 및 테두리 제거 */
@@ -707,7 +724,7 @@ async function exportPNG() {
               background: transparent !important; 
               box-shadow: none !important; 
           }
-          /* 그라데이션 텍스트를 인식이 쉬운 단색으로 덮어쓰기 (JS 인라인 스타일 무력화) */
+          /* 그라데이션 텍스트를 인식이 쉬운 단색으로 덮어쓰기 */
           .text-grad, .logo-icon {
               background: none !important;
               background-image: none !important;
