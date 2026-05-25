@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ticket Studio ✦</title>
+<title>Ticket Studio ✦ Inline & Gradient</title>
 <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,700;1,700&family=Special+Elite&display=swap" rel="stylesheet">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -46,22 +46,33 @@ body {
   letter-spacing: 0.1em;
   display: flex; align-items: center; gap: 8px;
 }
-
-/* 그라데이션 텍스트 공통 속성 */
-.text-grad, .logo-icon {
+.logo-icon {
   background-image: var(--grad);
-  -webkit-background-clip: text !important;
-  -webkit-text-fill-color: transparent !important;
-  color: transparent !important; /* Fallback */
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* 그라데이션 텍스트 공통 클래스 */
+.text-grad {
+  background-image: var(--grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
   display: inline-block;
 }
-.text-grad * {
-  -webkit-text-fill-color: transparent !important;
+/* 블록 레벨 요소가 text-grad를 가질 때 레이아웃 유지 */
+div.text-grad, .mv-header.text-grad, .mv-cast.text-grad,
+.bp-stub-route.text-grad, .rc-logo.text-grad {
+  display: block;
 }
-.bg-grad {
-  background-image: var(--grad);
+/* 스팬/인라인 요소 */
+span.text-grad, .mv-cast span.text-grad, .bp-stub-iata.text-grad,
+.bp-grid-item span.text-grad, .rc-grand-total span.text-grad {
+  display: inline-block;
 }
-
 .tab-nav { display: flex; gap: 10px; }
 .tab-btn {
   padding: 8px 24px;
@@ -92,6 +103,7 @@ body {
 .color-picker::-webkit-color-swatch { border: none; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1); }
 
 .export-btn {
+  background-image: var(--grad);
   color: var(--text);
   border: none; padding: 10px 24px; border-radius: 30px;
   font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 700;
@@ -148,7 +160,7 @@ body {
   object-fit: cover;
   transform-origin: center center;
   display: none;
-  pointer-events: none; /* 마우스 이벤트는 컨테이너가 받음 */
+  pointer-events: none;
 }
 .img-placeholder {
   font-family: 'IBM Plex Mono', monospace; font-size: 11px;
@@ -172,7 +184,6 @@ body {
 .ticket-wrapper { display: none; flex-direction: column; align-items: center; }
 .ticket-wrapper.active { display: flex; }
 .ticket-container { position: relative; }
-
 
 /* ════════════════════════════════
    1. MOVIE TICKET
@@ -225,13 +236,14 @@ body {
   display: flex; justify-content: space-between; align-items: center;
   padding: 16px 28px; border-bottom: 1px solid var(--border);
 }
-.bp-airline-name { font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 700; letter-spacing: 0.1em; color: white; -webkit-text-fill-color: white !important;}
-.bp-class-badge { font-family: 'IBM Plex Mono', monospace; background: white; padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; }
+.bp-airline-name { font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 700; letter-spacing: 0.1em; }
+.bp-class-badge { font-family: 'IBM Plex Mono', monospace; background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.5); padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; color: white; -webkit-text-fill-color: white; }
 .bp-body { display: flex; flex: 1; padding: 28px; gap: 32px; }
 .bp-img-side { width: 180px; height: 180px; border-radius: 16px; flex-shrink: 0; }
 .bp-content { flex: 1; display: flex; flex-direction: column; justify-content: center; }
 .bp-route { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; }
-.bp-iata { font-family: 'Playfair Display', serif; font-size: 46px; font-weight: 800; line-height: 1; }
+.bp-iata { font-family: 'Playfair Display', serif; font-size: 46px; font-weight: 800; line-height: 1; display: block; }
+.bp-iata.text-grad { display: block; }
 .bp-city-name { font-size: 12px; color: var(--muted); margin-top: 6px; font-weight: 600; text-transform: uppercase; }
 .bp-flight-icon { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 0 20px; }
 .bp-flight-icon svg { width: 28px; height: 28px; margin-bottom: 8px; opacity: 0.9; }
@@ -312,12 +324,11 @@ tr:hover .rc-del-btn { opacity: 1; }
 ::-webkit-scrollbar-thumb { background: #d0d0d0; border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: #aaa; }
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
 </head>
 <body>
 
 <header class="topbar">
-  <div class="logo"><span class="logo-icon">✦</span> TICKET STUDIO</div>
+  <div class="logo"><span class="logo-icon text-grad">✦</span> TICKET STUDIO</div>
 
   <div class="tab-nav">
     <button class="tab-btn active" onclick="switchTab('movie', this)">MOVIE</button>
@@ -347,7 +358,7 @@ tr:hover .rc-del-btn { opacity: 1; }
             <input type="file" class="img-upload-trigger" accept="image/*" onchange="handleImgUpload(this,'mv-img-vp')">
             <div class="img-placeholder"><span>+</span>Click to Add Photo</div>
             <img src="" alt="">
-            <div class="img-tools">
+            <div class="img-tools" data-html2canvas-ignore="true">
               <button class="img-btn" onclick="event.stopPropagation();zoomImg('mv-img-vp',0.1)">+</button>
               <button class="img-btn" onclick="event.stopPropagation();zoomImg('mv-img-vp',-0.1)">−</button>
               <button class="img-btn" onclick="event.stopPropagation();clearImg('mv-img-vp')">✕</button>
@@ -382,8 +393,8 @@ tr:hover .rc-del-btn { opacity: 1; }
       <div class="bp-ticket">
         <div class="bp-main">
           <div class="bp-top-bar bg-grad">
-            <div class="bp-airline-name" contenteditable="true" spellcheck="false">AIRLINE NAME</div>
-            <div class="bp-class-badge text-grad" contenteditable="true" spellcheck="false">FIRST CLASS</div>
+            <div class="bp-airline-name" style="-webkit-text-fill-color:#fff;color:#fff;" contenteditable="true" spellcheck="false">AIRLINE NAME</div>
+            <div class="bp-class-badge" contenteditable="true" spellcheck="false">FIRST CLASS</div>
           </div>
 
           <div class="bp-body">
@@ -391,7 +402,7 @@ tr:hover .rc-del-btn { opacity: 1; }
               <input type="file" class="img-upload-trigger" accept="image/*" onchange="handleImgUpload(this,'bp-img-vp')">
               <div class="img-placeholder"><span>+</span>Photo</div>
               <img src="" alt="">
-              <div class="img-tools" style="top:5px;right:5px;">
+              <div class="img-tools" data-html2canvas-ignore="true" style="top:5px;right:5px;">
                 <button class="img-btn" onclick="event.stopPropagation();zoomImg('bp-img-vp',0.1)">+</button>
                 <button class="img-btn" onclick="event.stopPropagation();zoomImg('bp-img-vp',-0.1)">−</button>
                 <button class="img-btn" onclick="event.stopPropagation();clearImg('bp-img-vp')">✕</button>
@@ -404,9 +415,10 @@ tr:hover .rc-del-btn { opacity: 1; }
                   <div class="bp-iata text-grad" contenteditable="true" spellcheck="false">ICN</div>
                   <div class="bp-city-name" contenteditable="true" spellcheck="false">SEOUL</div>
                 </div>
-                <div class="bp-flight-icon text-grad">
+
+                <div class="bp-flight-icon">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M17.8 19.2 16 11l3.5-3.5a2.12 2.12 0 0 0-3-3L13 8 4.8 6.2 3.5 7.5l6.4 2.8L7.2 13 4 12.5 3 13.5l3.5 2.5L9 19.5l1-1-.5-3.2 2.7-2.7 2.8 6.4 1.3-1.3z" fill="currentColor" stroke="none"/>
+                    <path d="M17.8 19.2 16 11l3.5-3.5a2.12 2.12 0 0 0-3-3L13 8 4.8 6.2 3.5 7.5l6.4 2.8L7.2 13 4 12.5 3 13.5l3.5 2.5L9 19.5l1-1-.5-3.2 2.7-2.7 2.8 6.4 1.3-1.3z" fill="var(--c1)" stroke="none"/>
                   </svg>
                   <div class="bp-flight-line"></div>
                 </div>
@@ -433,7 +445,7 @@ tr:hover .rc-del-btn { opacity: 1; }
           <div class="bp-stub-top">BOARDING PASS</div>
           <div class="bp-stub-route text-grad">
             <span class="bp-stub-iata" contenteditable="true" spellcheck="false">ICN</span>
-            <span style="opacity:0.4;font-size:14px; -webkit-text-fill-color: initial !important;">➔</span>
+            <span style="opacity:0.4;font-size:14px;">➔</span>
             <span class="bp-stub-iata" contenteditable="true" spellcheck="false">JFK</span>
           </div>
           <div class="bp-stub-seat-box">
@@ -466,7 +478,7 @@ tr:hover .rc-del-btn { opacity: 1; }
             <input type="file" class="img-upload-trigger" accept="image/*" onchange="handleImgUpload(this,'rc-img-vp')">
             <div class="img-placeholder"><span>+</span>Photo</div>
             <img src="" alt="">
-            <div class="img-tools">
+            <div class="img-tools" data-html2canvas-ignore="true">
               <button class="img-btn" onclick="event.stopPropagation();zoomImg('rc-img-vp',0.1)">+</button>
               <button class="img-btn" onclick="event.stopPropagation();zoomImg('rc-img-vp',-0.1)">−</button>
               <button class="img-btn" onclick="event.stopPropagation();clearImg('rc-img-vp')">✕</button>
@@ -478,7 +490,7 @@ tr:hover .rc-del-btn { opacity: 1; }
             <tbody id="rc-tbody">
               <tr>
                 <td>
-                  <span class="rc-del-btn" onclick="this.closest('tr').remove()">✕</span>
+                  <span class="rc-del-btn" data-html2canvas-ignore="true" onclick="this.closest('tr').remove()">✕</span>
                   <span class="rc-item-name" contenteditable="true" spellcheck="false">ITEM 01</span>
                   <span class="rc-item-qty" contenteditable="true" spellcheck="false">1 x</span>
                 </td>
@@ -486,7 +498,7 @@ tr:hover .rc-del-btn { opacity: 1; }
               </tr>
               <tr>
                 <td>
-                  <span class="rc-del-btn" onclick="this.closest('tr').remove()">✕</span>
+                  <span class="rc-del-btn" data-html2canvas-ignore="true" onclick="this.closest('tr').remove()">✕</span>
                   <span class="rc-item-name" contenteditable="true" spellcheck="false">ITEM 02</span>
                   <span class="rc-item-qty" contenteditable="true" spellcheck="false">2 x</span>
                 </td>
@@ -516,31 +528,50 @@ tr:hover .rc-del-btn { opacity: 1; }
 
 </main>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 /* ── 전역 상태 ── */
 let currentTab = 'movie';
 
-/* ── 그라데이션 업데이트 (실시간 변경 적용) ── */
+/* ── [핵심 픽스] 동적 스타일 태그 생성 함수 ── */
+// 웹킷 브라우저의 CSS 변수 렌더링 버그를 우회하기 위해,
+// 색상이 변경될 때마다 <style> 태그를 아예 새로 작성해서 강제로 리페인트를 일으킵니다.
 function updateGrad() {
   const c1 = document.getElementById('c1').value;
   const c2 = document.getElementById('c2').value;
   const gradString = `linear-gradient(135deg, ${c1}, ${c2})`;
 
+  // CSS 변수 업데이트
   document.documentElement.style.setProperty('--c1', c1);
   document.documentElement.style.setProperty('--c2', c2);
   document.documentElement.style.setProperty('--grad', gradString);
 
-  // 브라우저 렌더링 버그 강제 우회 (실시간 리페인트 유도)
-  document.querySelectorAll('.text-grad, .logo-icon').forEach(el => {
-      el.style.backgroundImage = 'none';
-      void el.offsetHeight; // Trigger Reflow
-      el.style.backgroundImage = gradString;
-  });
-  document.querySelectorAll('.bg-grad, .export-btn').forEach(el => {
-      el.style.backgroundImage = 'none';
-      void el.offsetHeight; // Trigger Reflow
-      el.style.backgroundImage = gradString;
-  });
+  // 동적으로 <style> 태그를 생성/덮어쓰기 하여 강제로 렌더링
+  let styleTag = document.getElementById('dynamic-grad-style');
+  if (!styleTag) {
+    styleTag = document.createElement('style');
+    styleTag.id = 'dynamic-grad-style';
+    document.head.appendChild(styleTag);
+  }
+  
+  styleTag.textContent = `
+    .text-grad, .logo-icon {
+        background-image: ${gradString} !important;
+        -webkit-background-clip: text !important;
+        background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        color: transparent !important;
+    }
+    span.text-grad, .logo-icon {
+        display: inline-block;
+    }
+    .bg-grad, .export-btn {
+        background-image: ${gradString} !important;
+    }
+    .bp-flight-icon svg path {
+        fill: ${c1} !important;
+    }
+  `;
 }
 
 /* ── 탭 전환 ── */
@@ -557,7 +588,7 @@ function addReceiptRow() {
   const tr = document.createElement('tr');
   tr.innerHTML = `
     <td>
-      <span class="rc-del-btn" onclick="this.closest('tr').remove()">✕</span>
+      <span class="rc-del-btn" data-html2canvas-ignore="true" onclick="this.closest('tr').remove()">✕</span>
       <span class="rc-item-name" contenteditable="true" spellcheck="false">NEW ITEM</span>
       <span class="rc-item-qty" contenteditable="true" spellcheck="false">1 x</span>
     </td>
@@ -652,40 +683,233 @@ document.querySelectorAll('.img-viewport').forEach(vp => {
 });
 
 /* ════════════════════════════════════════════════════
-   SAVE IMAGE — 완벽한 렌더링 엔진 (html-to-image) 사용
+   renderViewport — img-viewport 캔버스 굽기 보조 함수
+════════════════════════════════════════════════════ */
+function renderViewport(vp) {
+  const img = vp.querySelector('img');
+  const vpW = vp.offsetWidth || 1;
+  const vpH = vp.offsetHeight || 1;
+  const DPR = window.devicePixelRatio > 1 ? window.devicePixelRatio : 2;
+  
+  const oc  = document.createElement('canvas');
+  oc.width  = vpW * DPR;
+  oc.height = vpH * DPR;
+  const ctx = oc.getContext('2d');
+  ctx.scale(DPR, DPR);
+  
+  const nW = img.naturalWidth || 1;
+  const nH = img.naturalHeight || 1;
+  const base = Math.max(vpW / nW, vpH / nH);
+  const dW = nW * base, dH = nH * base;
+  
+  const tx = parseFloat(img.dataset.x || 0);
+  const ty = parseFloat(img.dataset.y || 0);
+  const sc = parseFloat(img.dataset.scale || 1);
+  
+  ctx.save();
+  ctx.beginPath();
+  const r = parseFloat(getComputedStyle(vp).borderRadius) || 0;
+  if (ctx.roundRect) ctx.roundRect(0, 0, vpW, vpH, r); else ctx.rect(0, 0, vpW, vpH);
+  ctx.clip();
+  ctx.translate(vpW / 2 + tx, vpH / 2 + ty);
+  ctx.scale(sc, sc);
+  ctx.drawImage(img, -dW / 2, -dH / 2, dW, dH);
+  ctx.restore();
+  return oc;
+}
+
+/* ════════════════════════════════════════════════════
+   text-grad 요소를 캔버스로 굽기
+   원본 요소의 레이아웃(정렬·자간·패딩)을 그대로 유지
+════════════════════════════════════════════════════ */
+async function renderGradTextToDataURL(snap, c1, c2) {
+  const fsPx       = parseFloat(snap.fontSize) || 16;
+  const fontFamily = snap.fontFamily || 'sans-serif';
+  const fontWeight = snap.fontWeight || '400';
+  const fontStyle  = snap.fontStyle  || 'normal';
+  // letter-spacing은 Canvas에서 px 단위 숫자로만 전달 ('normal'이면 0)
+  const lsPx       = parseFloat(snap.letterSpacing) || 0;
+  const DPR        = window.devicePixelRatio > 1 ? window.devicePixelRatio : 2;
+
+  // 캔버스 크기 = 원본 요소의 실제 렌더링 크기
+  const w = Math.ceil(snap.width)  || 300;
+  const h = Math.ceil(snap.height) || Math.ceil(fsPx * 1.5);
+
+  const c   = document.createElement('canvas');
+  c.width   = w * DPR;
+  c.height  = h * DPR;
+  const ctx = c.getContext('2d');
+  ctx.scale(DPR, DPR);
+
+  // 그라데이션은 전체 너비 기준
+  const grad = ctx.createLinearGradient(0, 0, w, h);
+  grad.addColorStop(0, c1);
+  grad.addColorStop(1, c2);
+  ctx.fillStyle = grad;
+
+  ctx.font         = `${fontStyle} ${fontWeight} ${fsPx}px ${fontFamily}`;
+  ctx.textBaseline = 'top';
+  // Canvas letterSpacing API (Chrome 99+) — 없으면 무시
+  if ('letterSpacing' in ctx) ctx.letterSpacing = lsPx + 'px';
+
+  // textAlign은 원본 CSS textAlign 그대로
+  const align = snap.textAlign || 'left';
+  ctx.textAlign = align;
+
+  // 정렬에 따른 x 시작점
+  const x = align === 'center' ? w / 2 : align === 'right' ? w : 0;
+
+  // 여러 줄 지원: innerText의 줄바꿈 처리
+  const lines = snap.text.split('\n').filter(l => l.trim() !== '');
+  const lineH = fsPx * 1.3;
+  const totalH = lineH * lines.length;
+  const startY = (h - totalH) / 2;   // 세로 중앙 정렬
+
+  lines.forEach((line, i) => {
+    ctx.fillText(line.trim(), x, startY + i * lineH);
+  });
+
+  return { dataURL: c.toDataURL('image/png'), w, h };
+}
+
+/* ════════════════════════════════════════════════════
+   SAVE IMAGE
 ════════════════════════════════════════════════════ */
 async function exportPNG() {
   if (document.activeElement) document.activeElement.blur();
 
   const btn = document.getElementById('saveBtn');
-  btn.disabled = true; 
+  btn.disabled = true;
   btn.textContent = 'SAVING...';
 
   try {
+    if (document.fonts) await document.fonts.ready;
+
     const el = document.getElementById(`export-${currentTab}`);
-    
-    // html-to-image 라이브러리를 통해 화면(DOM)을 그대로 스캔
-    const dataUrl = await htmlToImage.toPng(el, {
-      pixelRatio: window.devicePixelRatio > 1 ? window.devicePixelRatio * 1.5 : 3, // 고해상도 캡처
-      backgroundColor: 'transparent', // 배경 투명하게
-      filter: (node) => {
-        // 보기 싫은 UI 요소(툴 버튼, 삭제 X버튼 등)를 캡처본에서 쏙 빼줍니다.
-        if (node.classList && node.classList.contains('img-tools')) return false;
-        if (node.classList && node.classList.contains('rc-del-btn')) return false;
-        return true;
+    const rootStyle = getComputedStyle(document.documentElement);
+    const c1val = rootStyle.getPropertyValue('--c1').trim() || '#f4b3c2';
+    const c2val = rootStyle.getPropertyValue('--c2').trim() || '#ffe1e8';
+    const DPR   = window.devicePixelRatio > 1 ? window.devicePixelRatio : 2;
+
+    // ★ onclone 전에 원본 DOM에서 스냅샷 수집 (cloneEl에선 computed style 못 읽음)
+    const origGradEls = Array.from(el.querySelectorAll('.text-grad, .logo-icon'));
+    const snapshots = origGradEls.map(ge => {
+      const cs = getComputedStyle(ge);
+      const r  = ge.getBoundingClientRect();
+      return {
+        text:          ge.innerText || ge.textContent || '',
+        fontSize:      cs.fontSize,
+        fontFamily:    cs.fontFamily,
+        fontWeight:    cs.fontWeight,
+        fontStyle:     cs.fontStyle,
+        letterSpacing: cs.letterSpacing,
+        textAlign:     cs.textAlign,
+        display:       cs.display,
+        width:         r.width,
+        height:        r.height,
+      };
+    });
+
+    // ★ text-grad를 캔버스로 미리 굽기 (onclone 외부에서, 원본 document 컨텍스트)
+    const gradResults = await Promise.all(
+      snapshots.map(s => renderGradTextToDataURL(s, c1val, c2val))
+    );
+
+    const canvas = await html2canvas(el, {
+      scale: DPR,
+      backgroundColor: '#ffffff',
+      useCORS: true,
+      allowTaint: true,
+      logging: false,
+      onclone: (doc, cloneEl) => {
+        // 동적 그라데이션 스타일 제거
+        const dynStyle = doc.getElementById('dynamic-grad-style');
+        if (dynStyle) dynStyle.remove();
+
+        const st = doc.createElement('style');
+        st.textContent = `
+          [contenteditable="true"] {
+            border: none !important;
+            background: transparent !important;
+            box-shadow: none !important;
+            outline: none !important;
+          }
+          .text-grad, .logo-icon {
+            background: none !important;
+            background-image: none !important;
+            -webkit-background-clip: initial !important;
+            background-clip: initial !important;
+            -webkit-text-fill-color: initial !important;
+            color: transparent !important;
+            font-size: 0 !important;
+          }
+          .bg-grad {
+            background-image: linear-gradient(135deg, ${c1val}, ${c2val}) !important;
+          }
+          .mv-title, .bp-iata, .bp-stub-iata, .bp-stub-seat-box span, .bp-grid-item.full span {
+            font-family: 'Playfair Display', serif !important;
+          }
+          .mv-header, .mv-info-item label, .mv-info-item span, .mv-stub-text,
+          .bp-airline-name, .bp-class-badge, .bp-grid-item label, .bp-grid-item span,
+          .bp-stub-top, .bp-city-name, .rc-sub, .rc-table th {
+            font-family: 'IBM Plex Mono', monospace !important;
+          }
+          .rc-ticket, .rc-content, .rc-meta, .rc-meta-row span, .rc-table td, .rc-totals,
+          .rc-total-row, .rc-grand-total, .rc-item-name, .rc-item-qty, .rc-footer, .rc-msg {
+            font-family: 'Courier Prime', monospace !important;
+          }
+          .rc-logo { font-family: 'Special Elite', cursive !important; }
+          [data-html2canvas-ignore] { display: none !important; }
+        `;
+        cloneEl.appendChild(st);
+
+        // ① text-grad 원본 요소의 레이아웃은 유지하고 내부만 img로 교체
+        //    (replaceWith 대신 innerHTML 교체 → 부모의 정렬·패딩 그대로 유지)
+        const cloneGradEls = Array.from(cloneEl.querySelectorAll('.text-grad, .logo-icon'));
+        cloneGradEls.forEach((gel, idx) => {
+          const res = gradResults[idx];
+          if (!res) return;
+          const img = doc.createElement('img');
+          img.src = res.dataURL;
+          // 원본 요소 크기에 맞춤
+          img.style.cssText = `width:${res.w}px;height:${res.h}px;display:inline-block;vertical-align:middle;max-width:100%;`;
+          // 원본 요소는 유지, 내용만 교체 → 부모의 text-align·padding 등 레이아웃 상속
+          gel.style.cssText += ';background:none!important;-webkit-text-fill-color:transparent!important;color:transparent!important;font-size:0!important;padding:0;';
+          gel.innerHTML = '';
+          gel.appendChild(img);
+        });
+
+        // ② 줌/드래그 이미지 굽기
+        const origVPs  = Array.from(el.querySelectorAll('.img-viewport'));
+        const cloneVPs = Array.from(cloneEl.querySelectorAll('.img-viewport'));
+        origVPs.forEach((origVP, i) => {
+          const cloneVP = cloneVPs[i];
+          if (origVP.dataset.hasImg === '1') {
+            const oc  = renderViewport(origVP);
+            const vpW = origVP.offsetWidth, vpH = origVP.offsetHeight;
+            const img = doc.createElement('img');
+            img.src = oc.toDataURL('image/png');
+            img.style.cssText = `width:${vpW}px;height:${vpH}px;display:block;border-radius:${getComputedStyle(origVP).borderRadius};`;
+            cloneVP.innerHTML = '';
+            cloneVP.style.cssText = `overflow:visible;background:transparent;display:block;width:${vpW}px;height:${vpH}px;border:none;`;
+            cloneVP.appendChild(img);
+          }
+        });
       }
     });
 
     const a = document.createElement('a');
     a.download = `ticket_${currentTab}_${Date.now()}.png`;
-    a.href = dataUrl;
+    a.href = canvas.toDataURL('image/png');
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
 
   } catch (err) {
     console.error(err);
-    alert('저장 중 오류가 발생했습니다. 브라우저를 새로고침 후 다시 시도해주세요.\n에러 내용: ' + err.message);
+    alert('저장 중 오류가 발생했습니다.\n' + err.message);
   } finally {
-    btn.disabled = false; 
+    btn.disabled = false;
     btn.textContent = 'SAVE IMAGE';
   }
 }
