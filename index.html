@@ -63,12 +63,10 @@ body {
   color: transparent;
   display: inline-block;
 }
-/* 블록 레벨 요소가 text-grad를 가질 때 레이아웃 유지 */
 div.text-grad, .mv-header.text-grad, .mv-cast.text-grad,
 .bp-stub-route.text-grad, .rc-logo.text-grad {
   display: block;
 }
-/* 스팬/인라인 요소 */
 span.text-grad, .mv-cast span.text-grad, .bp-stub-iata.text-grad,
 .bp-grid-item span.text-grad, .rc-grand-total span.text-grad {
   display: inline-block;
@@ -154,11 +152,8 @@ span.text-grad, .mv-cast span.text-grad, .bp-stub-iata.text-grad,
 }
 .img-viewport:active { cursor: grabbing; }
 .img-viewport img {
-  /* 자연 크기 유지 — 뷰포트보다 작으면 늘어나지 않음 */
   position: absolute;
-  /* top/left는 JS transform으로 제어 */
   top: 0; left: 0;
-  /* 크기는 JS에서 object-fit:cover 계산 후 직접 설정 */
   width: auto; height: auto;
   max-width: none; max-height: none;
   transform-origin: center center;
@@ -227,38 +222,65 @@ span.text-grad, .mv-cast span.text-grad, .bp-stub-iata.text-grad,
 .mv-stub-text { font-family: 'IBM Plex Mono', monospace; font-size: 11px; opacity: 0.5; }
 
 /* ════════════════════════════════
-   2. BOARDING PASS
+   2. BOARDING PASS  ← 핵심 수정
 ════════════════════════════════ */
 .bp-ticket {
-  width: 760px; background: white; border-radius: 16px;
+  /* FIX: 760→820px — IATA·도시명이 잘리지 않도록 너비 확장 */
+  width: 820px;
+  background: white; border-radius: 16px;
   box-shadow: 0 16px 40px rgba(0,0,0,0.06); display: flex;
   overflow: hidden; border: 1px solid var(--border); color: var(--text);
 }
-.bp-main { flex: 1; display: flex; flex-direction: column; }
+.bp-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .bp-top-bar {
   display: flex; justify-content: space-between; align-items: center;
   padding: 16px 28px; border-bottom: 1px solid var(--border);
 }
 .bp-airline-name { font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 700; letter-spacing: 0.1em; white-space: nowrap; }
 .bp-class-badge { font-family: 'IBM Plex Mono', monospace; background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.5); padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; color: white; -webkit-text-fill-color: white; }
-.bp-body { display: flex; flex: 1; padding: 28px; gap: 32px; }
-.bp-img-side { width: 180px; height: 180px; border-radius: 16px; flex-shrink: 0; }
-.bp-content { flex: 1; display: flex; flex-direction: column; justify-content: center; }
-.bp-route { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; gap: 12px; }
-.bp-iata { font-family: 'Playfair Display', serif; font-size: 46px; font-weight: 800; line-height: 1; display: block; white-space: nowrap; min-width: 0; }
+/* FIX: padding·gap 축소 → bp-content 가용폭 확보 */
+.bp-body { display: flex; flex: 1; padding: 24px 24px; gap: 24px; min-width: 0; }
+.bp-img-side { width: 175px; height: 175px; border-radius: 16px; flex-shrink: 0; }
+.bp-content { flex: 1; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+.bp-route {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 28px; gap: 8px;
+}
+/* FIX: flex-shrink:0 → 너비 여유 없으면 IATA 영역이 밀림.
+   min-width:0 + overflow:hidden 으로 컨테이너 내부 제한 */
+.bp-route-side {
+  flex-shrink: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+.bp-route-side.right { text-align: right; }
+/* FIX: 46→40px — 긴 IATA도 안전하게 표시 */
+.bp-iata {
+  font-family: 'Playfair Display', serif; font-size: 40px; font-weight: 800;
+  line-height: 1; display: block; white-space: nowrap; min-width: 0;
+}
 .bp-iata.text-grad { display: block; white-space: nowrap; }
-.bp-city-name { font-size: 12px; color: var(--muted); margin-top: 6px; font-weight: 600; text-transform: uppercase; white-space: nowrap; }
-.bp-flight-icon { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 0 20px; }
-.bp-flight-icon svg { width: 28px; height: 28px; margin-bottom: 8px; opacity: 0.9; }
+/* FIX: white-space:nowrap 제거 → 긴 도시명 자동 줄바꿈 허용 */
+.bp-city-name {
+  font-size: 11px; color: var(--muted); margin-top: 6px;
+  font-weight: 600; text-transform: uppercase;
+  white-space: normal; word-break: break-word;
+  max-width: 110px;
+}
+.bp-route-side.right .bp-city-name { margin-left: auto; }
+.bp-flight-icon { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 0 12px; min-width: 40px; }
+.bp-flight-icon svg { width: 24px; height: 24px; margin-bottom: 8px; opacity: 0.9; }
 .bp-flight-line { width: 100%; border-top: 2px dashed var(--border); }
-.bp-grid { display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 20px 16px; }
+.bp-grid { display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 18px 14px; }
 .bp-grid-item label { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); margin-bottom: 4px; letter-spacing: 0.05em; }
-.bp-grid-item span { font-size: 15px; font-weight: 700; white-space: nowrap; }
+/* FIX: white-space:nowrap → long values도 안전하게 */
+.bp-grid-item span { font-size: 14px; font-weight: 700; white-space: nowrap; }
 .bp-grid-item.full { grid-column: span 3; margin-bottom: 4px; }
 .bp-grid-item.full span { font-size: 18px; font-family: 'Playfair Display', serif; font-style: italic; }
 .bp-stub {
   width: 230px; background: #fafafa; border-left: 1px dashed var(--border);
-  padding: 28px; display: flex; flex-direction: column; position: relative;
+  padding: 24px; display: flex; flex-direction: column; position: relative;
+  flex-shrink: 0;
 }
 .bp-stub::before, .bp-stub::after {
   content: ''; position: absolute; left: -12px; width: 24px; height: 24px;
@@ -266,19 +288,19 @@ span.text-grad, .mv-cast span.text-grad, .bp-stub-iata.text-grad,
 }
 .bp-stub::before { top: -13px; }
 .bp-stub::after { bottom: -13px; }
-.bp-stub-top { text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); margin-bottom: 28px; font-weight: 600; }
-.bp-stub-route { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
-.bp-stub-iata { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 800; white-space: nowrap; }
+.bp-stub-top { text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); margin-bottom: 24px; font-weight: 600; }
+.bp-stub-route { display: flex; align-items: center; gap: 8px; margin-bottom: 24px; flex-wrap: nowrap; }
+.bp-stub-iata { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 800; white-space: nowrap; }
 .bp-stub-seat-box {
-  background: white; border: 1px solid var(--border); border-radius: 12px; padding: 18px;
+  background: white; border: 1px solid var(--border); border-radius: 12px; padding: 16px;
   text-align: center; margin-bottom: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.02);
 }
 .bp-stub-seat-box label { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); margin-bottom: 6px; }
-.bp-stub-seat-box span { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 800; line-height: 1; }
-.bp-stub-barcode { margin-top: 24px; opacity: 0.7; }
+.bp-stub-seat-box span { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 800; line-height: 1; }
+.bp-stub-barcode { margin-top: 20px; opacity: 0.7; }
 
 /* ════════════════════════════════
-   3. RECEIPT
+   3. RECEIPT  ← 수정
 ════════════════════════════════ */
 .rc-ticket {
   width: 340px; background: white; font-family: 'Courier Prime', monospace;
@@ -286,8 +308,19 @@ span.text-grad, .mv-cast span.text-grad, .bp-stub-iata.text-grad,
   border: 1px solid var(--border); border-radius: 8px;
 }
 .rc-content { padding: 32px 24px; }
-.rc-header { text-align: center; padding-bottom: 24px; margin-bottom: 24px; border-bottom: 1px dashed var(--border); }
-.rc-logo { font-size: 28px; font-weight: 700; margin-bottom: 8px; font-family: 'Special Elite', cursive; }
+.rc-header {
+  text-align: center; padding-bottom: 24px; margin-bottom: 24px;
+  border-bottom: 1px dashed var(--border);
+  /* FIX: 그라데이션 텍스트 클리핑 방지 */
+  overflow: visible;
+}
+/* FIX: rc-logo padding 추가 → text-grad 상하 클리핑 방지 */
+.rc-logo {
+  font-size: 28px; font-weight: 700; margin-bottom: 8px;
+  font-family: 'Special Elite', cursive;
+  padding: 4px 0;
+  line-height: 1.3;
+}
 .rc-sub { font-size: 11px; color: var(--muted); letter-spacing: 0.1em; }
 .rc-meta { font-size: 12px; line-height: 2; margin-bottom: 24px; }
 .rc-meta-row { display: flex; justify-content: space-between; }
@@ -310,10 +343,12 @@ tr:hover .rc-del-btn { opacity: 1; }
   background: #fafafa; padding: 16px; border-radius: 8px; border: 1px solid var(--border);
 }
 .rc-grand-total label { font-size: 13px; font-weight: 700; }
-.rc-grand-total span { font-size: 22px; font-weight: 700; }
+/* FIX: grand-total span padding → 그라데이션 텍스트 상하 클리핑 방지 */
+.rc-grand-total span { font-size: 22px; font-weight: 700; padding: 2px 0; line-height: 1.3; }
 .rc-footer { text-align: center; margin-top: 28px; }
 .rc-barcode { width: 100%; height: 44px; opacity: 0.6; margin-bottom: 16px; }
-.rc-msg { font-size: 11px; color: var(--muted); letter-spacing: 0.1em; }
+/* FIX: rc-msg padding → 텍스트 하단 클리핑 방지 */
+.rc-msg { font-size: 11px; color: var(--muted); letter-spacing: 0.1em; padding-bottom: 2px; }
 
 .add-row-btn {
   margin-top: 20px; background: transparent; border: 1px dashed var(--border); color: var(--muted);
@@ -351,6 +386,7 @@ tr:hover .rc-del-btn { opacity: 1; }
 
 <main class="workspace">
 
+  <!-- ── MOVIE ── -->
   <div id="view-movie" class="ticket-wrapper active">
     <div class="ticket-container" id="export-movie">
       <div class="mv-ticket">
@@ -391,6 +427,7 @@ tr:hover .rc-del-btn { opacity: 1; }
     </div>
   </div>
 
+  <!-- ── BOARDING PASS ── -->
   <div id="view-boarding" class="ticket-wrapper">
     <div class="ticket-container" id="export-boarding">
       <div class="bp-ticket">
@@ -414,7 +451,8 @@ tr:hover .rc-del-btn { opacity: 1; }
 
             <div class="bp-content">
               <div class="bp-route">
-                <div style="flex-shrink:0;">
+                <!-- FIX: div에 bp-route-side 클래스 추가 (min-width:0, overflow:hidden 적용) -->
+                <div class="bp-route-side">
                   <div class="bp-iata text-grad" contenteditable="true" spellcheck="false">ICN</div>
                   <div class="bp-city-name" contenteditable="true" spellcheck="false">SEOUL</div>
                 </div>
@@ -425,9 +463,11 @@ tr:hover .rc-del-btn { opacity: 1; }
                   </svg>
                   <div class="bp-flight-line"></div>
                 </div>
-                <div style="flex-shrink:0;text-align:right;">
+
+                <!-- FIX: right 클래스 추가 → text-align:right 적용 -->
+                <div class="bp-route-side right">
                   <div class="bp-iata text-grad" contenteditable="true" spellcheck="false">JFK</div>
-                  <div class="bp-city-name" contenteditable="true" spellcheck="false">NEW YORK</div>
+                  <div class="bp-city-name" style="text-align:right;" contenteditable="true" spellcheck="false">NEW YORK</div>
                 </div>
               </div>
 
@@ -446,10 +486,11 @@ tr:hover .rc-del-btn { opacity: 1; }
 
         <div class="bp-stub">
           <div class="bp-stub-top">BOARDING PASS</div>
-          <div class="bp-stub-route text-grad">
-            <span class="bp-stub-iata" contenteditable="true" spellcheck="false">ICN</span>
-            <span style="opacity:0.4;font-size:14px;">➔</span>
-            <span class="bp-stub-iata" contenteditable="true" spellcheck="false">JFK</span>
+          <!-- FIX: bp-stub-route를 text-grad div로 감싸는 대신 개별 요소에만 적용 → 레이아웃 안정 -->
+          <div class="bp-stub-route">
+            <span class="bp-stub-iata text-grad" contenteditable="true" spellcheck="false">ICN</span>
+            <span style="opacity:0.4;font-size:14px;flex-shrink:0;">➔</span>
+            <span class="bp-stub-iata text-grad" contenteditable="true" spellcheck="false">JFK</span>
           </div>
           <div class="bp-stub-seat-box">
             <label>SEAT</label>
@@ -461,6 +502,7 @@ tr:hover .rc-del-btn { opacity: 1; }
     </div>
   </div>
 
+  <!-- ── RECEIPT ── -->
   <div id="view-receipt" class="ticket-wrapper">
     <div class="ticket-container" id="export-receipt">
       <div class="rc-ticket">
@@ -533,23 +575,17 @@ tr:hover .rc-del-btn { opacity: 1; }
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
-/* ── 전역 상태 ── */
 let currentTab = 'movie';
 
-/* ── [핵심 픽스] 동적 스타일 태그 생성 함수 ── */
-// 웹킷 브라우저의 CSS 변수 렌더링 버그를 우회하기 위해,
-// 색상이 변경될 때마다 <style> 태그를 아예 새로 작성해서 강제로 리페인트를 일으킵니다.
 function updateGrad() {
   const c1 = document.getElementById('c1').value;
   const c2 = document.getElementById('c2').value;
   const gradString = `linear-gradient(135deg, ${c1}, ${c2})`;
 
-  // CSS 변수 업데이트
   document.documentElement.style.setProperty('--c1', c1);
   document.documentElement.style.setProperty('--c2', c2);
   document.documentElement.style.setProperty('--grad', gradString);
 
-  // 동적으로 <style> 태그를 생성/덮어쓰기 하여 강제로 렌더링
   let styleTag = document.getElementById('dynamic-grad-style');
   if (!styleTag) {
     styleTag = document.createElement('style');
@@ -577,7 +613,6 @@ function updateGrad() {
   `;
 }
 
-/* ── 탭 전환 ── */
 function switchTab(tab, btn) {
   currentTab = tab;
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -586,7 +621,6 @@ function switchTab(tab, btn) {
   document.getElementById(`view-${tab}`).classList.add('active');
 }
 
-/* ── 영수증 항목 추가 ── */
 function addReceiptRow() {
   const tr = document.createElement('tr');
   tr.innerHTML = `
@@ -599,7 +633,6 @@ function addReceiptRow() {
   document.getElementById('rc-tbody').appendChild(tr);
 }
 
-/* ── 바코드 생성 ── */
 function drawBarcode(id, w, h) {
   const pat = [2,1,3,1,2,1,1,2,3,1,2,1,1,3,2,1,1,2,1,3,1,2,3,1,1,2,1,3,2,1,1,2,3,1,2,1,1,2,3,1,2,1,2,1,3,1,2];
   let bars = '', x = 0, count = Math.floor(w / 5);
@@ -615,7 +648,6 @@ drawBarcode('bc-mv', 300, 40);
 drawBarcode('bc-bp', 180, 30);
 drawBarcode('bc-rc', 260, 44);
 
-/* ── 이미지 업로드 ── */
 function clickUpload(vp) {
   if (vp.dataset.hasImg === '1') return;
   vp.querySelector('input[type=file]').click();
@@ -660,7 +692,6 @@ function zoomImg(vpId, delta) {
   applyTransform(img);
 }
 
-/* 이미지를 뷰포트 중앙에 맞춰 cover로 초기 크기 설정 */
 function fitImgToCover(img, vp) {
   const vpW = vp.offsetWidth, vpH = vp.offsetHeight;
   const nW = img.naturalWidth || vpW, nH = img.naturalHeight || vpH;
@@ -668,7 +699,6 @@ function fitImgToCover(img, vp) {
   const w = nW * scale, h = nH * scale;
   img.style.width  = w + 'px';
   img.style.height = h + 'px';
-  // 중앙 정렬을 위한 초기 offset
   img.style.left = ((vpW - w) / 2) + 'px';
   img.style.top  = ((vpH - h) / 2) + 'px';
   img.dataset.baseLeft = (vpW - w) / 2;
@@ -676,24 +706,17 @@ function fitImgToCover(img, vp) {
 }
 
 function applyTransform(img) {
-  const baseLeft = parseFloat(img.dataset.baseLeft || 0);
-  const baseTop  = parseFloat(img.dataset.baseTop  || 0);
   const tx = parseFloat(img.dataset.x || 0);
   const ty = parseFloat(img.dataset.y || 0);
   const sc = parseFloat(img.dataset.scale || 1);
   img.style.transform = `translate(${tx}px,${ty}px) scale(${sc})`;
   img.style.transformOrigin = 'center center';
-  // left/top은 fitImgToCover에서 설정한 값 유지
 }
 
-/* ── contenteditable Enter 키 차단 (한줄 유지) ── */
 document.querySelectorAll('[contenteditable="true"]').forEach(el => {
   el.addEventListener('keydown', e => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-    }
+    if (e.key === 'Enter') { e.preventDefault(); }
   });
-  // 붙여넣기 시 줄바꿈 제거
   el.addEventListener('paste', e => {
     e.preventDefault();
     const text = (e.clipboardData || window.clipboardData).getData('text/plain').replace(/\n|\r/g, ' ');
@@ -701,7 +724,6 @@ document.querySelectorAll('[contenteditable="true"]').forEach(el => {
   });
 });
 
-/* ── 드래그 & 휠 줌 ── */
 document.querySelectorAll('.img-viewport').forEach(vp => {
   const img = vp.querySelector('img');
   let drag = false, sx, sy, ix, iy;
@@ -725,9 +747,6 @@ document.querySelectorAll('.img-viewport').forEach(vp => {
   });
 });
 
-/* ════════════════════════════════════════════════════
-   renderViewport — img-viewport 캔버스 굽기 보조 함수
-════════════════════════════════════════════════════ */
 function renderViewport(vp) {
   const img = vp.querySelector('img');
   const vpW = vp.offsetWidth  || 1;
@@ -740,7 +759,6 @@ function renderViewport(vp) {
   const ctx = oc.getContext('2d');
   ctx.scale(DPR, DPR);
 
-  // img의 현재 렌더링 크기 (fitImgToCover가 설정한 값)
   const dW = parseFloat(img.style.width)  || img.naturalWidth  || vpW;
   const dH = parseFloat(img.style.height) || img.naturalHeight || vpH;
   const baseLeft = parseFloat(img.dataset.baseLeft || 0);
@@ -755,7 +773,6 @@ function renderViewport(vp) {
   if (ctx.roundRect) ctx.roundRect(0, 0, vpW, vpH, r); else ctx.rect(0, 0, vpW, vpH);
   ctx.clip();
 
-  // transform-origin: center center 기준으로 scale + translate 적용
   const cx = baseLeft + dW / 2 + tx;
   const cy = baseTop  + dH / 2 + ty;
   ctx.translate(cx, cy);
@@ -765,22 +782,18 @@ function renderViewport(vp) {
   return oc;
 }
 
-/* ════════════════════════════════════════════════════
-   text-grad 요소를 캔버스로 굽기
-   원본 요소의 레이아웃(정렬·자간·패딩)을 그대로 유지
-════════════════════════════════════════════════════ */
 async function renderGradTextToDataURL(snap, c1, c2) {
   const fsPx       = parseFloat(snap.fontSize) || 16;
   const fontFamily = snap.fontFamily || 'sans-serif';
   const fontWeight = snap.fontWeight || '400';
   const fontStyle  = snap.fontStyle  || 'normal';
-  // letter-spacing은 Canvas에서 px 단위 숫자로만 전달 ('normal'이면 0)
   const lsPx       = parseFloat(snap.letterSpacing) || 0;
   const DPR        = window.devicePixelRatio > 1 ? window.devicePixelRatio : 2;
 
-  // 캔버스 크기 = 원본 요소의 실제 렌더링 크기
+  /* FIX: 상하 패딩 추가 → 디센더/어센더 클리핑 방지 */
+  const VPAD = Math.ceil(fsPx * 0.3);
   const w = Math.ceil(snap.width)  || 300;
-  const h = Math.ceil(snap.height) || Math.ceil(fsPx * 1.5);
+  const h = Math.ceil(snap.height) + VPAD * 2 || Math.ceil(fsPx * 1.8);
 
   const c   = document.createElement('canvas');
   c.width   = w * DPR;
@@ -788,7 +801,6 @@ async function renderGradTextToDataURL(snap, c1, c2) {
   const ctx = c.getContext('2d');
   ctx.scale(DPR, DPR);
 
-  // 그라데이션은 전체 너비 기준
   const grad = ctx.createLinearGradient(0, 0, w, h);
   grad.addColorStop(0, c1);
   grad.addColorStop(1, c2);
@@ -796,32 +808,22 @@ async function renderGradTextToDataURL(snap, c1, c2) {
 
   ctx.font         = `${fontStyle} ${fontWeight} ${fsPx}px ${fontFamily}`;
   ctx.textBaseline = 'top';
-  // Canvas letterSpacing API (Chrome 99+) — 없으면 무시
   if ('letterSpacing' in ctx) ctx.letterSpacing = lsPx + 'px';
 
-  // textAlign은 원본 CSS textAlign 그대로
   const align = snap.textAlign || 'left';
   ctx.textAlign = align;
-
-  // 정렬에 따른 x 시작점
   const x = align === 'center' ? w / 2 : align === 'right' ? w : 0;
 
-  // 여러 줄 지원: innerText의 줄바꿈 처리
   const lines = snap.text.split('\n').filter(l => l.trim() !== '');
   const lineH = fsPx * 1.3;
-  const totalH = lineH * lines.length;
-  const startY = (h - totalH) / 2;   // 세로 중앙 정렬
-
+  /* FIX: 수직 패딩 반영 */
   lines.forEach((line, i) => {
-    ctx.fillText(line.trim(), x, startY + i * lineH);
+    ctx.fillText(line.trim(), x, VPAD + i * lineH);
   });
 
   return { dataURL: c.toDataURL('image/png'), w, h };
 }
 
-/* ════════════════════════════════════════════════════
-   SAVE IMAGE
-════════════════════════════════════════════════════ */
 async function exportPNG() {
   if (document.activeElement) document.activeElement.blur();
 
@@ -838,7 +840,6 @@ async function exportPNG() {
     const c2val = rootStyle.getPropertyValue('--c2').trim() || '#ffe1e8';
     const DPR   = window.devicePixelRatio > 1 ? window.devicePixelRatio : 2;
 
-    // ★ onclone 전에 원본 DOM에서 스냅샷 수집 (cloneEl에선 computed style 못 읽음)
     const origGradEls = Array.from(el.querySelectorAll('.text-grad, .logo-icon'));
     const snapshots = origGradEls.map(ge => {
       const cs = getComputedStyle(ge);
@@ -857,7 +858,6 @@ async function exportPNG() {
       };
     });
 
-    // ★ text-grad를 캔버스로 미리 굽기 (onclone 외부에서, 원본 document 컨텍스트)
     const gradResults = await Promise.all(
       snapshots.map(s => renderGradTextToDataURL(s, c1val, c2val))
     );
@@ -869,7 +869,6 @@ async function exportPNG() {
       allowTaint: true,
       logging: false,
       onclone: (doc, cloneEl) => {
-        // 동적 그라데이션 스타일 제거
         const dynStyle = doc.getElementById('dynamic-grad-style');
         if (dynStyle) dynStyle.remove();
 
@@ -910,23 +909,18 @@ async function exportPNG() {
         `;
         cloneEl.appendChild(st);
 
-        // ① text-grad 원본 요소의 레이아웃은 유지하고 내부만 img로 교체
-        //    (replaceWith 대신 innerHTML 교체 → 부모의 정렬·패딩 그대로 유지)
         const cloneGradEls = Array.from(cloneEl.querySelectorAll('.text-grad, .logo-icon'));
         cloneGradEls.forEach((gel, idx) => {
           const res = gradResults[idx];
           if (!res) return;
           const img = doc.createElement('img');
           img.src = res.dataURL;
-          // 원본 요소 크기에 맞춤
           img.style.cssText = `width:${res.w}px;height:${res.h}px;display:inline-block;vertical-align:middle;max-width:100%;`;
-          // 원본 요소는 유지, 내용만 교체 → 부모의 text-align·padding 등 레이아웃 상속
           gel.style.cssText += ';background:none!important;-webkit-text-fill-color:transparent!important;color:transparent!important;font-size:0!important;padding:0;';
           gel.innerHTML = '';
           gel.appendChild(img);
         });
 
-        // ② 줌/드래그 이미지 굽기
         const origVPs  = Array.from(el.querySelectorAll('.img-viewport'));
         const cloneVPs = Array.from(cloneEl.querySelectorAll('.img-viewport'));
         origVPs.forEach((origVP, i) => {
@@ -961,7 +955,6 @@ async function exportPNG() {
   }
 }
 
-/* 초기화 */
 updateGrad();
 </script>
 </body>
