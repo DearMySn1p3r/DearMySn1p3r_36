@@ -154,10 +154,13 @@ span.text-grad, .mv-cast span.text-grad, .bp-stub-iata.text-grad,
 }
 .img-viewport:active { cursor: grabbing; }
 .img-viewport img {
+  /* 자연 크기 유지 — 뷰포트보다 작으면 늘어나지 않음 */
   position: absolute;
+  /* top/left는 JS transform으로 제어 */
   top: 0; left: 0;
-  width: 100%; height: 100%;
-  object-fit: cover;
+  /* 크기는 JS에서 object-fit:cover 계산 후 직접 설정 */
+  width: auto; height: auto;
+  max-width: none; max-height: none;
   transform-origin: center center;
   display: none;
   pointer-events: none;
@@ -626,11 +629,14 @@ function handleImgUpload(input, vpId) {
     const vp = document.getElementById(vpId);
     const img = vp.querySelector('img');
     img.src = e.target.result;
-    img.style.display = 'block';
-    vp.querySelector('.img-placeholder').style.display = 'none';
-    img.dataset.x = 0; img.dataset.y = 0; img.dataset.scale = 1;
-    applyTransform(img);
-    vp.dataset.hasImg = '1';
+    img.onload = () => {
+      fitImgToCover(img, vp);
+      img.style.display = 'block';
+      vp.querySelector('.img-placeholder').style.display = 'none';
+      img.dataset.x = 0; img.dataset.y = 0; img.dataset.scale = 1;
+      applyTransform(img);
+      vp.dataset.hasImg = '1';
+    };
   };
   reader.readAsDataURL(file);
 }
@@ -654,8 +660,30 @@ function zoomImg(vpId, delta) {
   applyTransform(img);
 }
 
+/* 이미지를 뷰포트 중앙에 맞춰 cover로 초기 크기 설정 */
+function fitImgToCover(img, vp) {
+  const vpW = vp.offsetWidth, vpH = vp.offsetHeight;
+  const nW = img.naturalWidth || vpW, nH = img.naturalHeight || vpH;
+  const scale = Math.max(vpW / nW, vpH / nH);
+  const w = nW * scale, h = nH * scale;
+  img.style.width  = w + 'px';
+  img.style.height = h + 'px';
+  // 중앙 정렬을 위한 초기 offset
+  img.style.left = ((vpW - w) / 2) + 'px';
+  img.style.top  = ((vpH - h) / 2) + 'px';
+  img.dataset.baseLeft = (vpW - w) / 2;
+  img.dataset.baseTop  = (vpH - h) / 2;
+}
+
 function applyTransform(img) {
-  img.style.transform = `translate(${img.dataset.x||0}px,${img.dataset.y||0}px) scale(${img.dataset.scale||1})`;
+  const baseLeft = parseFloat(img.dataset.baseLeft || 0);
+  const baseTop  = parseFloat(img.dataset.baseTop  || 0);
+  const tx = parseFloat(img.dataset.x || 0);
+  const ty = parseFloat(img.dataset.y || 0);
+  const sc = parseFloat(img.dataset.scale || 1);
+  img.style.transform = `translate(${tx}px,${ty}px) scale(${sc})`;
+  img.style.transformOrigin = 'center center';
+  // left/top은 fitImgToCover에서 설정한 값 유지
 }
 
 /* ── 드래그 & 휠 줌 ── */
@@ -687,31 +715,35 @@ document.querySelectorAll('.img-viewport').forEach(vp => {
 ════════════════════════════════════════════════════ */
 function renderViewport(vp) {
   const img = vp.querySelector('img');
-  const vpW = vp.offsetWidth || 1;
+  const vpW = vp.offsetWidth  || 1;
   const vpH = vp.offsetHeight || 1;
   const DPR = window.devicePixelRatio > 1 ? window.devicePixelRatio : 2;
-  
+
   const oc  = document.createElement('canvas');
   oc.width  = vpW * DPR;
   oc.height = vpH * DPR;
   const ctx = oc.getContext('2d');
   ctx.scale(DPR, DPR);
-  
-  const nW = img.naturalWidth || 1;
-  const nH = img.naturalHeight || 1;
-  const base = Math.max(vpW / nW, vpH / nH);
-  const dW = nW * base, dH = nH * base;
-  
+
+  // img의 현재 렌더링 크기 (fitImgToCover가 설정한 값)
+  const dW = parseFloat(img.style.width)  || img.naturalWidth  || vpW;
+  const dH = parseFloat(img.style.height) || img.naturalHeight || vpH;
+  const baseLeft = parseFloat(img.dataset.baseLeft || 0);
+  const baseTop  = parseFloat(img.dataset.baseTop  || 0);
   const tx = parseFloat(img.dataset.x || 0);
   const ty = parseFloat(img.dataset.y || 0);
   const sc = parseFloat(img.dataset.scale || 1);
-  
+
   ctx.save();
   ctx.beginPath();
   const r = parseFloat(getComputedStyle(vp).borderRadius) || 0;
   if (ctx.roundRect) ctx.roundRect(0, 0, vpW, vpH, r); else ctx.rect(0, 0, vpW, vpH);
   ctx.clip();
-  ctx.translate(vpW / 2 + tx, vpH / 2 + ty);
+
+  // transform-origin: center center 기준으로 scale + translate 적용
+  const cx = baseLeft + dW / 2 + tx;
+  const cy = baseTop  + dH / 2 + ty;
+  ctx.translate(cx, cy);
   ctx.scale(sc, sc);
   ctx.drawImage(img, -dW / 2, -dH / 2, dW, dH);
   ctx.restore();
