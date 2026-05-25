@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ticket Studio ✦ Inline & Gradient</title>
+<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,700;1,700&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #f4f4f5;
+  --text: #222222;
+  --muted: #888888;
+  --border: #e0e0e0;
+  --c1: #f4b3c2;
+  --c2: #ffe1e8;
+  --grad: linear-gradient(135deg, var(--c1), var(--c2));
+}
+
+body {
+  background: var(--bg);
+  font-family: 'Outfit', sans-serif;
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Topbar ── */
+.topbar {
+  background: white;
+  height: 70px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+  flex-shrink: 0;
+  z-index: 100;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+}
+.logo {
+  font-family: 'Special Elite', cursive;
+  font-size: 20px;
+  letter-spacing: 0.1em;
+  display: flex; align-items: center; gap: 8px;
+}
+.logo-icon {
+  background: var(--grad);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.tab-nav { display: flex; gap: 10px; }
+.tab-btn {
+  padding: 8px 24px;
+  border: 1px solid transparent;
+  background: #f8f8f8;
+  border-radius: 40px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--muted);
+}
+.tab-btn:hover { background: #eee; color: var(--text); }
+.tab-btn.active { background: var(--text); color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+
+.controls { display: flex; align-items: center; gap: 20px; }
+.color-wrap {
+  display: flex; align-items: center; gap: 8px;
+  background: #f8f8f8; padding: 6px 12px; border-radius: 30px; border: 1px solid var(--border);
+}
+.color-wrap span { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; color: var(--muted); }
+.color-picker {
+  -webkit-appearance: none; border: none; width: 24px; height: 24px;
+  border-radius: 50%; overflow: hidden; cursor: pointer; padding: 0; background: transparent;
+}
+.color-picker::-webkit-color-swatch-wrapper { padding: 0; }
+.color-picker::-webkit-color-swatch { border: none; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1); }
+
+.export-btn {
+  background: var(--grad);
+  color: var(--text);
+  border: none; padding: 10px 24px; border-radius: 30px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  min-width: 130px;
+}
+.export-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.12); }
+.export-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+/* ── Workspace ── */
+.workspace {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 60px 40px;
+  overflow-y: auto;
+  min-height: 0;
+  background-image: radial-gradient(circle, #ddd 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* ── Inline Editable ── */
+[contenteditable="true"] {
+  outline: none;
+  border-bottom: 1px dashed transparent;
+  transition: all 0.2s;
+  border-radius: 2px;
+  padding: 0 2px;
+}
+[contenteditable="true"]:hover,
+[contenteditable="true"]:focus {
+  border-bottom-color: var(--c1);
+  background: rgba(0,0,0,0.03);
+}
+[contenteditable="true"]:empty::before { content: attr(data-placeholder); opacity: 0.3; pointer-events: none; }
+
+/* ── Image Viewport ── */
+.img-viewport {
+  position: relative;
+  overflow: hidden;
+  background: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  cursor: grab;
+}
+.img-viewport:active { cursor: grabbing; }
+.img-viewport img {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transform-origin: center center;
+  display: none;
+  pointer-events: none;
+}
+.img-placeholder {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+  color: var(--muted); pointer-events: none;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  z-index: 1;
+}
+.img-upload-trigger { display: none; }
+.img-tools {
+  position: absolute; top: 10px; right: 10px; display: none; gap: 6px; z-index: 10;
+}
+.img-viewport:hover .img-tools { display: flex; }
+.img-btn {
+  background: rgba(255,255,255,0.9); border: 1px solid var(--border); color: var(--text);
+  border-radius: 50%; width: 28px; height: 28px; cursor: pointer; font-size: 12px;
+  display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+.img-btn:hover { background: white; color: var(--c1); transform: scale(1.05); }
+
+/* ── Ticket Wrapper ── */
+.ticket-wrapper { display: none; flex-direction: column; align-items: center; }
+.ticket-wrapper.active { display: flex; }
+.ticket-container { position: relative; }
+
+.bg-grad { background: var(--grad); }
+.text-grad { background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+/* ════════════════════════════════
+   1. MOVIE TICKET
+════════════════════════════════ */
+.mv-ticket {
+  width: 380px; background: #ffffff; border-radius: 12px;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.06); color: var(--text);
+  overflow: hidden; position: relative; border: 1px solid var(--border);
+}
+.mv-ticket::before, .mv-ticket::after {
+  content: ''; position: absolute; top: 62%; width: 24px; height: 24px;
+  background: var(--bg); border-radius: 50%; z-index: 10; border: 1px solid var(--border);
+}
+.mv-ticket::before { left: -13px; }
+.mv-ticket::after { right: -13px; }
+.mv-inner { padding: 28px 24px; }
+.mv-header {
+  text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+  letter-spacing: 0.3em; font-weight: 700; margin-bottom: 24px;
+}
+.mv-img-box { width: 100%; aspect-ratio: 4/3; border-radius: 8px; margin-bottom: 24px; }
+.mv-body { text-align: center; }
+.mv-title { font-family: 'Playfair Display', serif; font-size: 34px; font-weight: 800; line-height: 1.1; margin-bottom: 6px; }
+.mv-subtitle { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.1em; opacity: 0.6; }
+.mv-cast { margin-top: 20px; font-family: 'Playfair Display', serif; font-size: 18px; font-style: italic; font-weight: 700; }
+.mv-info-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  border-top: 1px dashed var(--border); border-bottom: 1px dashed var(--border);
+  margin-top: 24px; padding: 16px 0; gap: 14px; text-align: left;
+}
+.mv-info-item label { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--muted); margin-bottom: 4px; letter-spacing: 0.05em; }
+.mv-info-item span { font-size: 14px; font-weight: 600; }
+.mv-stub {
+  padding: 24px; text-align: center; background: #fafafa;
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+}
+.mv-barcode { width: 100%; height: 40px; opacity: 0.8; }
+.mv-stub-text { font-family: 'IBM Plex Mono', monospace; font-size: 11px; opacity: 0.5; }
+
+/* ════════════════════════════════
+   2. BOARDING PASS
+════════════════════════════════ */
+.bp-ticket {
+  width: 760px; background: white; border-radius: 16px;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.06); display: flex;
+  overflow: hidden; border: 1px solid var(--border); color: var(--text);
+}
+.bp-main { flex: 1; display: flex; flex-direction: column; }
+.bp-top-bar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 28px; border-bottom: 1px solid var(--border);
+}
+.bp-airline-name { font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 700; letter-spacing: 0.1em; }
+.bp-class-badge { font-family: 'IBM Plex Mono', monospace; background: white; padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; }
+.bp-body { display: flex; flex: 1; padding: 28px; gap: 32px; }
+.bp-img-side { width: 180px; height: 180px; border-radius: 16px; flex-shrink: 0; }
+.bp-content { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.bp-route { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; }
+.bp-iata { font-family: 'Playfair Display', serif; font-size: 46px; font-weight: 800; line-height: 1; }
+.bp-city-name { font-size: 12px; color: var(--muted); margin-top: 6px; font-weight: 600; text-transform: uppercase; }
+.bp-flight-icon { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 0 20px; }
+.bp-flight-icon svg { width: 28px; height: 28px; margin-bottom: 8px; opacity: 0.9; }
+.bp-flight-line { width: 100%; border-top: 2px dashed var(--border); }
+.bp-grid { display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 20px 16px; }
+.bp-grid-item label { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); margin-bottom: 4px; letter-spacing: 0.05em; }
+.bp-grid-item span { font-size: 15px; font-weight: 700; white-space: nowrap; }
+.bp-grid-item.full { grid-column: span 3; margin-bottom: 4px; }
+.bp-grid-item.full span { font-size: 18px; font-family: 'Playfair Display', serif; font-style: italic; }
+.bp-stub {
+  width: 230px; background: #fafafa; border-left: 1px dashed var(--border);
+  padding: 28px; display: flex; flex-direction: column; position: relative;
+}
+.bp-stub::before, .bp-stub::after {
+  content: ''; position: absolute; left: -12px; width: 24px; height: 24px;
+  background: var(--bg); border-radius: 50%; border: 1px solid var(--border);
+}
+.bp-stub::before { top: -13px; }
+.bp-stub::after { bottom: -13px; }
+.bp-stub-top { text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); margin-bottom: 28px; font-weight: 600; }
+.bp-stub-route { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
+.bp-stub-iata { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 800; }
+.bp-stub-seat-box {
+  background: white; border: 1px solid var(--border); border-radius: 12px; padding: 18px;
+  text-align: center; margin-bottom: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+}
+.bp-stub-seat-box label { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); margin-bottom: 6px; }
+.bp-stub-seat-box span { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 800; line-height: 1; }
+.bp-stub-barcode { margin-top: 24px; opacity: 0.7; }
+
+/* ════════════════════════════════
+   3. RECEIPT
+════════════════════════════════ */
+.rc-ticket {
+  width: 340px; background: white; font-family: 'Courier Prime', monospace;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.04); color: var(--text);
+  border: 1px solid var(--border); border-radius: 8px;
+}
+.rc-content { padding: 32px 24px; }
+.rc-header { text-align: center; padding-bottom: 24px; margin-bottom: 24px; border-bottom: 1px dashed var(--border); }
+.rc-logo { font-size: 28px; font-weight: 700; margin-bottom: 8px; font-family: 'Special Elite', cursive; }
+.rc-sub { font-size: 11px; color: var(--muted); letter-spacing: 0.1em; }
+.rc-meta { font-size: 12px; line-height: 2; margin-bottom: 24px; }
+.rc-meta-row { display: flex; justify-content: space-between; }
+.rc-meta-row label { color: var(--muted); }
+.rc-img-box { width: 100%; aspect-ratio: 1/1; border-radius: 8px; margin-bottom: 24px; }
+.rc-table { width: 100%; font-size: 12px; line-height: 2.2; border-collapse: collapse; }
+.rc-table th { text-align: left; color: var(--muted); font-weight: 700; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.rc-table th:last-child { text-align: right; }
+.rc-table td { padding-top: 10px; vertical-align: top; }
+.rc-table td:last-child { text-align: right; }
+.rc-item-name { display: block; font-weight: 700; color: var(--text); }
+.rc-item-qty { color: var(--muted); font-size: 11px; }
+.rc-del-btn { display: inline-block; color: #ccc; cursor: pointer; padding: 0 4px; opacity: 0; transition: opacity 0.2s; font-family: sans-serif; }
+tr:hover .rc-del-btn { opacity: 1; }
+.rc-del-btn:hover { color: red; }
+.rc-totals { margin-top: 16px; border-top: 1px dashed var(--border); padding-top: 20px; }
+.rc-total-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 8px; color: var(--muted); }
+.rc-grand-total {
+  display: flex; justify-content: space-between; align-items: center; margin-top: 20px;
+  background: #fafafa; padding: 16px; border-radius: 8px; border: 1px solid var(--border);
+}
+.rc-grand-total label { font-size: 13px; font-weight: 700; }
+.rc-grand-total span { font-size: 22px; font-weight: 700; }
+.rc-footer { text-align: center; margin-top: 28px; }
+.rc-barcode { width: 100%; height: 44px; opacity: 0.6; margin-bottom: 16px; }
+.rc-msg { font-size: 11px; color: var(--muted); letter-spacing: 0.1em; }
+
+.add-row-btn {
+  margin-top: 20px; background: transparent; border: 1px dashed var(--border); color: var(--muted);
+  padding: 12px 24px; border-radius: 30px; font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+  font-weight: 600; cursor: pointer; transition: all 0.2s; width: 100%; max-width: 340px;
+}
+.add-row-btn:hover { border-color: var(--text); color: var(--text); background: white; }
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d0d0d0; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #aaa; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="logo"><span class="logo-icon">✦</span> TICKET STUDIO</div>
+
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('movie', this)">MOVIE</button>
+    <button class="tab-btn" onclick="switchTab('boarding', this)">BOARDING</button>
+    <button class="tab-btn" onclick="switchTab('receipt', this)">RECEIPT</button>
+  </div>
+
+  <div class="controls">
+    <div class="color-wrap">
+      <span>Color</span>
+      <input type="color" class="color-picker" id="c1" value="#f4b3c2" oninput="updateGrad()">
+      <input type="color" class="color-picker" id="c2" value="#ffe1e8" oninput="updateGrad()">
+    </div>
+    <button class="export-btn" id="saveBtn" onclick="exportPNG()">SAVE IMAGE</button>
+  </div>
+</header>
+
+<main class="workspace">
+
+  <div id="view-movie" class="ticket-wrapper active">
+    <div class="ticket-container" id="export-movie">
+      <div class="mv-ticket">
+        <div class="mv-inner">
+          <div class="mv-header text-grad">ADMIT ONE ✦ CINEMA</div>
+
+          <div class="img-viewport mv-img-box" id="mv-img-vp" onclick="clickUpload(this)">
+            <input type="file" class="img-upload-trigger" accept="image/*" onchange="handleImgUpload(this,'mv-img-vp')">
+            <div class="img-placeholder"><span>+</span>Click to Add Photo</div>
+            <img src="" alt="">
+            <div class="img-tools" data-html2canvas-ignore="true">
+              <button class="img-btn" onclick="event.stopPropagation();zoomImg('mv-img-vp',0.1)">+</button>
+              <button class="img-btn" onclick="event.stopPropagation();zoomImg('mv-img-vp',-0.1)">−</button>
+              <button class="img-btn" onclick="event.stopPropagation();clearImg('mv-img-vp')">✕</button>
+            </div>
+          </div>
+
+          <div class="mv-body">
+            <div class="mv-title" contenteditable="true" spellcheck="false">MOVIE TITLE</div>
+            <div class="mv-subtitle" contenteditable="true" spellcheck="false">SPECIAL SCREENING</div>
+            <div class="mv-cast text-grad">
+              <span contenteditable="true" spellcheck="false">NAME A</span> &amp;
+              <span contenteditable="true" spellcheck="false">NAME B</span>
+            </div>
+            <div class="mv-info-grid">
+              <div class="mv-info-item"><label>DATE</label><span contenteditable="true" spellcheck="false">2026.05.25</span></div>
+              <div class="mv-info-item"><label>TIME</label><span contenteditable="true" spellcheck="false">19:00 - 21:00</span></div>
+              <div class="mv-info-item"><label>SEAT</label><span contenteditable="true" spellcheck="false">A1, A2</span></div>
+              <div class="mv-info-item"><label>INFO</label><span contenteditable="true" spellcheck="false">SCREEN A / 30,000</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="mv-stub">
+          <div class="mv-barcode" id="bc-mv"></div>
+          <div class="mv-stub-text" contenteditable="true" spellcheck="false">THANK YOU FOR COMING</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-boarding" class="ticket-wrapper">
+    <div class="ticket-container" id="export-boarding">
+      <div class="bp-ticket">
+        <div class="bp-main">
+          <div class="bp-top-bar bg-grad">
+            <div class="bp-airline-name" style="-webkit-text-fill-color:#fff;color:#fff;" contenteditable="true" spellcheck="false">AIRLINE NAME</div>
+            <div class="bp-class-badge text-grad" contenteditable="true" spellcheck="false">FIRST CLASS</div>
+          </div>
+
+          <div class="bp-body">
+            <div class="img-viewport bp-img-side" id="bp-img-vp" onclick="clickUpload(this)">
+              <input type="file" class="img-upload-trigger" accept="image/*" onchange="handleImgUpload(this,'bp-img-vp')">
+              <div class="img-placeholder"><span>+</span>Photo</div>
+              <img src="" alt="">
+              <div class="img-tools" data-html2canvas-ignore="true" style="top:5px;right:5px;">
+                <button class="img-btn" onclick="event.stopPropagation();zoomImg('bp-img-vp',0.1)">+</button>
+                <button class="img-btn" onclick="event.stopPropagation();zoomImg('bp-img-vp',-0.1)">−</button>
+                <button class="img-btn" onclick="event.stopPropagation();clearImg('bp-img-vp')">✕</button>
+              </div>
+            </div>
+
+            <div class="bp-content">
+              <div class="bp-route">
+                <div style="width:35%">
+                  <div class="bp-iata text-grad" contenteditable="true" spellcheck="false">ICN</div>
+                  <div class="bp-city-name" contenteditable="true" spellcheck="false">SEOUL</div>
+                </div>
+                <div class="bp-flight-icon text-grad">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17.8 19.2 16 11l3.5-3.5a2.12 2.12 0 0 0-3-3L13 8 4.8 6.2 3.5 7.5l6.4 2.8L7.2 13 4 12.5 3 13.5l3.5 2.5L9 19.5l1-1-.5-3.2 2.7-2.7 2.8 6.4 1.3-1.3z" fill="currentColor" stroke="none"/>
+                  </svg>
+                  <div class="bp-flight-line"></div>
+                </div>
+                <div style="width:35%;text-align:right">
+                  <div class="bp-iata text-grad" contenteditable="true" spellcheck="false">JFK</div>
+                  <div class="bp-city-name" contenteditable="true" spellcheck="false">NEW YORK</div>
+                </div>
+              </div>
+
+              <div class="bp-grid">
+                <div class="bp-grid-item full"><label>PASSENGER</label><span class="text-grad" contenteditable="true" spellcheck="false">LAST / FIRST</span></div>
+                <div class="bp-grid-item"><label>FLIGHT</label><span contenteditable="true" spellcheck="false">FL000</span></div>
+                <div class="bp-grid-item"><label>DATE</label><span contenteditable="true" spellcheck="false">25 MAY 2026</span></div>
+                <div class="bp-grid-item"><label>TIME</label><span contenteditable="true" spellcheck="false">10:45 AM</span></div>
+                <div class="bp-grid-item"><label>GATE</label><span contenteditable="true" spellcheck="false">G14</span></div>
+                <div class="bp-grid-item"><label>SEAT</label><span contenteditable="true" spellcheck="false">01A</span></div>
+                <div class="bp-grid-item"><label>REMARKS</label><span contenteditable="true" spellcheck="false">OK</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bp-stub">
+          <div class="bp-stub-top">BOARDING PASS</div>
+          <div class="bp-stub-route text-grad">
+            <span class="bp-stub-iata" contenteditable="true" spellcheck="false">ICN</span>
+            <span style="opacity:0.4;font-size:14px;">➔</span>
+            <span class="bp-stub-iata" contenteditable="true" spellcheck="false">JFK</span>
+          </div>
+          <div class="bp-stub-seat-box">
+            <label>SEAT</label>
+            <span class="text-grad" contenteditable="true" spellcheck="false">01A</span>
+          </div>
+          <div class="bp-stub-barcode" id="bc-bp"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-receipt" class="ticket-wrapper">
+    <div class="ticket-container" id="export-receipt">
+      <div class="rc-ticket">
+        <div class="rc-content">
+          <div class="rc-header">
+            <div class="rc-logo text-grad" contenteditable="true" spellcheck="false">STORE NAME</div>
+            <div class="rc-sub">RECEIPT OF TRANSACTION</div>
+          </div>
+
+          <div class="rc-meta">
+            <div class="rc-meta-row"><label>Date:</label><span contenteditable="true" spellcheck="false">2026 / 05 / 25</span></div>
+            <div class="rc-meta-row"><label>Order:</label><span contenteditable="true" spellcheck="false">#00142</span></div>
+            <div class="rc-meta-row"><label>Client:</label><span contenteditable="true" spellcheck="false">NAME A</span></div>
+            <div class="rc-meta-row"><label>Server:</label><span contenteditable="true" spellcheck="false">NAME B</span></div>
+          </div>
+
+          <div class="img-viewport rc-img-box" id="rc-img-vp" onclick="clickUpload(this)">
+            <input type="file" class="img-upload-trigger" accept="image/*" onchange="handleImgUpload(this,'rc-img-vp')">
+            <div class="img-placeholder"><span>+</span>Photo</div>
+            <img src="" alt="">
+            <div class="img-tools" data-html2canvas-ignore="true">
+              <button class="img-btn" onclick="event.stopPropagation();zoomImg('rc-img-vp',0.1)">+</button>
+              <button class="img-btn" onclick="event.stopPropagation();zoomImg('rc-img-vp',-0.1)">−</button>
+              <button class="img-btn" onclick="event.stopPropagation();clearImg('rc-img-vp')">✕</button>
+            </div>
+          </div>
+
+          <table class="rc-table" cellspacing="0">
+            <thead><tr><th>ITEM</th><th>AMOUNT</th></tr></thead>
+            <tbody id="rc-tbody">
+              <tr>
+                <td>
+                  <span class="rc-del-btn" data-html2canvas-ignore="true" onclick="this.closest('tr').remove()">✕</span>
+                  <span class="rc-item-name" contenteditable="true" spellcheck="false">ITEM 01</span>
+                  <span class="rc-item-qty" contenteditable="true" spellcheck="false">1 x</span>
+                </td>
+                <td contenteditable="true" spellcheck="false">10,000</td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="rc-del-btn" data-html2canvas-ignore="true" onclick="this.closest('tr').remove()">✕</span>
+                  <span class="rc-item-name" contenteditable="true" spellcheck="false">ITEM 02</span>
+                  <span class="rc-item-qty" contenteditable="true" spellcheck="false">2 x</span>
+                </td>
+                <td contenteditable="true" spellcheck="false">20,000</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="rc-totals">
+            <div class="rc-total-row"><span>Subtotal</span><span>---</span></div>
+            <div class="rc-total-row"><span>Discount / Tax</span><span contenteditable="true" spellcheck="false">0</span></div>
+            <div class="rc-grand-total">
+              <label>TOTAL</label>
+              <span class="text-grad" contenteditable="true" spellcheck="false">30,000</span>
+            </div>
+          </div>
+
+          <div class="rc-footer">
+            <div class="rc-barcode" id="bc-rc"></div>
+            <div class="rc-msg" contenteditable="true" spellcheck="false">HAVE A NICE DAY</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <button class="add-row-btn" onclick="addReceiptRow()">+ ADD NEW ITEM</button>
+  </div>
+
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+/* ── 전역 상태 ── */
+let currentTab = 'movie';
+
+/* ── 그라데이션 업데이트 ── */
+function updateGrad() {
+  const c1 = document.getElementById('c1').value;
+  const c2 = document.getElementById('c2').value;
+  document.documentElement.style.setProperty('--c1', c1);
+  document.documentElement.style.setProperty('--c2', c2);
+  document.documentElement.style.setProperty('--grad', `linear-gradient(135deg,${c1},${c2})`);
+}
+
+/* ── 탭 전환 ── */
+function switchTab(tab, btn) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.ticket-wrapper').forEach(v => v.classList.remove('active'));
+  document.getElementById(`view-${tab}`).classList.add('active');
+}
+
+/* ── 영수증 항목 추가 ── */
+function addReceiptRow() {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td>
+      <span class="rc-del-btn" data-html2canvas-ignore="true" onclick="this.closest('tr').remove()">✕</span>
+      <span class="rc-item-name" contenteditable="true" spellcheck="false">NEW ITEM</span>
+      <span class="rc-item-qty" contenteditable="true" spellcheck="false">1 x</span>
+    </td>
+    <td contenteditable="true" spellcheck="false">0</td>`;
+  document.getElementById('rc-tbody').appendChild(tr);
+}
+
+/* ── 바코드 생성 ── */
+function drawBarcode(id, w, h) {
+  const pat = [2,1,3,1,2,1,1,2,3,1,2,1,1,3,2,1,1,2,1,3,1,2,3,1,1,2,1,3,2,1,1,2,3,1,2,1,1,2,3,1,2,1,2,1,3,1,2];
+  let bars = '', x = 0, count = Math.floor(w / 5);
+  for (let i = 0; i < count; i++) {
+    const bw = pat[i % pat.length];
+    bars += `<rect x="${x}" y="0" width="${bw}" height="${h}" fill="#333"/>`;
+    x += bw + 1.5;
+  }
+  document.getElementById(id).innerHTML =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 ${x} ${h}">${bars}</svg>`;
+}
+drawBarcode('bc-mv', 300, 40);
+drawBarcode('bc-bp', 180, 30);
+drawBarcode('bc-rc', 260, 44);
+
+/* ── 이미지 업로드 ── */
+function clickUpload(vp) {
+  if (vp.dataset.hasImg === '1') return;
+  vp.querySelector('input[type=file]').click();
+}
+
+function handleImgUpload(input, vpId) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const vp = document.getElementById(vpId);
+    const img = vp.querySelector('img');
+    img.src = e.target.result;
+    img.style.display = 'block';
+    vp.querySelector('.img-placeholder').style.display = 'none';
+    img.dataset.x = 0; img.dataset.y = 0; img.dataset.scale = 1;
+    applyTransform(img);
+    vp.dataset.hasImg = '1';
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearImg(vpId) {
+  const vp = document.getElementById(vpId);
+  const img = vp.querySelector('img');
+  img.removeAttribute('src');
+  img.style.display = 'none';
+  vp.querySelector('.img-placeholder').style.display = 'flex';
+  vp.querySelector('input[type=file]').value = '';
+  vp.dataset.hasImg = '0';
+}
+
+function zoomImg(vpId, delta) {
+  const vp = document.getElementById(vpId);
+  if (vp.dataset.hasImg !== '1') return;
+  const img = vp.querySelector('img');
+  let s = Math.max(0.1, Math.min(parseFloat(img.dataset.scale || 1) + delta, 5));
+  img.dataset.scale = s;
+  applyTransform(img);
+}
+
+function applyTransform(img) {
+  img.style.transform = `translate(${img.dataset.x||0}px,${img.dataset.y||0}px) scale(${img.dataset.scale||1})`;
+}
+
+/* ── 드래그 & 휠 줌 ── */
+document.querySelectorAll('.img-viewport').forEach(vp => {
+  const img = vp.querySelector('img');
+  let drag = false, sx, sy, ix, iy;
+  vp.addEventListener('mousedown', e => {
+    if (vp.dataset.hasImg !== '1' || e.target.tagName === 'BUTTON') return;
+    drag = true; sx = e.clientX; sy = e.clientY;
+    ix = parseFloat(img.dataset.x || 0); iy = parseFloat(img.dataset.y || 0);
+  });
+  window.addEventListener('mousemove', e => {
+    if (!drag) return;
+    img.dataset.x = ix + e.clientX - sx;
+    img.dataset.y = iy + e.clientY - sy;
+    applyTransform(img);
+  });
+  window.addEventListener('mouseup', () => drag = false);
+  vp.addEventListener('wheel', e => {
+    if (vp.dataset.hasImg !== '1') return;
+    e.preventDefault();
+    let s = Math.max(0.2, Math.min(parseFloat(img.dataset.scale || 1) - e.deltaY * 0.002, 5));
+    img.dataset.scale = s; applyTransform(img);
+  });
+});
+
+/* ════════════════════════════════════════════════════
+   renderViewport — img-viewport 캔버스 굽기 보조 함수
+════════════════════════════════════════════════════ */
+function renderViewport(vp) {
+  const img = vp.querySelector('img');
+  const vpW = vp.offsetWidth || 1;
+  const vpH = vp.offsetHeight || 1;
+  const DPR = window.devicePixelRatio > 1 ? window.devicePixelRatio : 2;
+  
+  const oc  = document.createElement('canvas');
+  oc.width  = vpW * DPR;
+  oc.height = vpH * DPR;
+  const ctx = oc.getContext('2d');
+  ctx.scale(DPR, DPR);
+  
+  const nW = img.naturalWidth || 1;
+  const nH = img.naturalHeight || 1;
+  const base = Math.max(vpW / nW, vpH / nH);
+  const dW = nW * base, dH = nH * base;
+  
+  const tx = parseFloat(img.dataset.x || 0);
+  const ty = parseFloat(img.dataset.y || 0);
+  const sc = parseFloat(img.dataset.scale || 1);
+  
+  ctx.save();
+  ctx.beginPath();
+  const r = parseFloat(getComputedStyle(vp).borderRadius) || 0;
+  if (ctx.roundRect) ctx.roundRect(0, 0, vpW, vpH, r); else ctx.rect(0, 0, vpW, vpH);
+  ctx.clip();
+  ctx.translate(vpW / 2 + tx, vpH / 2 + ty);
+  ctx.scale(sc, sc);
+  ctx.drawImage(img, -dW / 2, -dH / 2, dW, dH);
+  ctx.restore();
+  return oc;
+}
+
+/* ════════════════════════════════════════════════════
+   SAVE IMAGE — 안전한 html2canvas onclone 로직 적용
+════════════════════════════════════════════════════ */
+async function exportPNG() {
+  if (document.activeElement) document.activeElement.blur();
+
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true; 
+  btn.textContent = 'SAVING...';
+
+  try {
+    // 폰트가 렌더링 준비될 때까지 안전하게 대기
+    if (document.fonts) await document.fonts.ready;
+
+    const el = document.getElementById(`export-${currentTab}`);
+    const c1val = getComputedStyle(document.documentElement).getPropertyValue('--c1').trim() || '#f4b3c2';
+
+    const canvas = await html2canvas(el, {
+      scale: window.devicePixelRatio > 1 ? window.devicePixelRatio : 2,
+      backgroundColor: null, // 모서리 둥글게(투명 배경) 유지
+      useCORS: true,
+      allowTaint: true,
+      logging: false,
+      onclone: (doc) => {
+        const cloneEl = doc.getElementById(`export-${currentTab}`);
+        
+        // 1. 그라데이션 텍스트를 html2canvas가 인식 가능한 단색으로 임시 변경
+        cloneEl.querySelectorAll('.text-grad').forEach(node => {
+          node.style.background = 'none';
+          node.style.webkitBackgroundClip = 'unset';
+          node.style.webkitTextFillColor = 'initial';
+          node.style.color = c1val;
+        });
+
+        // 2. 입력 박스(contenteditable)의 숨겨진 테두리 및 효과 방지
+        const st = doc.createElement('style');
+        st.textContent = `
+          [contenteditable="true"] { border: none !important; background: transparent !important; box-shadow: none !important; }
+          .mv-title, .bp-iata, .bp-stub-iata, .bp-stub-seat-box span, .bp-grid-item.full span
+          { font-family: 'Playfair Display', serif !important; }
+          .mv-header, .mv-info-item label, .mv-info-item span, .mv-stub-text,
+          .bp-airline-name, .bp-class-badge, .bp-grid-item label, .bp-grid-item span,
+          .bp-stub-top, .bp-city-name, .rc-sub, .rc-table th
+          { font-family: 'IBM Plex Mono', monospace !important; }
+          .rc-ticket, .rc-content, .rc-meta, .rc-meta-row span, .rc-table td, .rc-totals,
+          .rc-total-row, .rc-grand-total, .rc-item-name, .rc-item-qty, .rc-footer, .rc-msg
+          { font-family: 'Courier Prime', monospace !important; }
+          .rc-logo { font-family: 'Special Elite', cursive !important; }
+          [data-html2canvas-ignore] { display: none !important; }
+        `;
+        cloneEl.appendChild(st);
+
+        // 3. 변형(드래그, 확대)된 이미지 렌더링을 위해 미리 구운 캔버스로 교체
+        const origVPs = Array.from(el.querySelectorAll('.img-viewport'));
+        const cloneVPs = Array.from(cloneEl.querySelectorAll('.img-viewport'));
+
+        origVPs.forEach((origVP, i) => {
+          const cloneVP = cloneVPs[i];
+          if (origVP.dataset.hasImg === '1') {
+            const oc = renderViewport(origVP);
+            const vpW = origVP.offsetWidth, vpH = origVP.offsetHeight;
+            oc.style.cssText = `width:${vpW}px; height:${vpH}px; display:block; border-radius:${getComputedStyle(origVP).borderRadius};`;
+            cloneVP.innerHTML = '';
+            cloneVP.style.cssText = `overflow:visible; background:transparent; display:block; width:${vpW}px; height:${vpH}px; border:none;`;
+            cloneVP.appendChild(oc);
+          }
+        });
+      }
+    });
+
+    const a = document.createElement('a');
+    a.download = `ticket_${currentTab}_${Date.now()}.png`;
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+
+  } catch (err) {
+    console.error(err);
+    alert('저장 중 오류가 발생했습니다. 브라우저를 새로고침 후 다시 시도해주세요.\n에러 내용: ' + err.message);
+  } finally {
+    // 성공/실패 여부 관계없이 버튼 복구
+    btn.disabled = false; 
+    btn.textContent = 'SAVE IMAGE';
+  }
+}
+
+/* 초기화 */
+updateGrad();
+</script>
+</body>
+</html>
