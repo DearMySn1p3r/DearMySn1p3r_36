@@ -676,7 +676,6 @@ async function exportPNG() {
   btn.textContent = 'SAVING...';
 
   try {
-    // 폰트가 렌더링 준비될 때까지 안전하게 대기
     if (document.fonts) await document.fonts.ready;
 
     const el = document.getElementById(`export-${currentTab}`);
@@ -684,40 +683,52 @@ async function exportPNG() {
 
     const canvas = await html2canvas(el, {
       scale: window.devicePixelRatio > 1 ? window.devicePixelRatio : 2,
-      backgroundColor: null, // 모서리 둥글게(투명 배경) 유지
+      backgroundColor: null, 
       useCORS: true,
       allowTaint: true,
       logging: false,
       onclone: (doc) => {
         const cloneEl = doc.getElementById(`export-${currentTab}`);
         
-        // 1. 그라데이션 텍스트를 html2canvas가 인식 가능한 단색으로 임시 변경
-        cloneEl.querySelectorAll('.text-grad').forEach(node => {
-          node.style.background = 'none';
-          node.style.webkitBackgroundClip = 'unset';
-          node.style.webkitTextFillColor = 'initial';
-          node.style.color = c1val;
-        });
-
-        // 2. 입력 박스(contenteditable)의 숨겨진 테두리 및 효과 방지
+        // 1. 핵심 픽스: html2canvas의 -webkit-background-clip 버그 우회를 위한 스타일 강제 주입
         const st = doc.createElement('style');
         st.textContent = `
-          [contenteditable="true"] { border: none !important; background: transparent !important; box-shadow: none !important; }
-          .mv-title, .bp-iata, .bp-stub-iata, .bp-stub-seat-box span, .bp-grid-item.full span
-          { font-family: 'Playfair Display', serif !important; }
+          /* 입력창 숨김 및 테두리 제거 */
+          [contenteditable="true"] { 
+              border: none !important; 
+              background: transparent !important; 
+              box-shadow: none !important; 
+          }
+          /* 그라데이션 텍스트를 단색으로 강제 덮어쓰기 */
+          .text-grad {
+              background: none !important;
+              -webkit-background-clip: unset !important;
+              -webkit-text-fill-color: ${c1val} !important;
+              color: ${c1val} !important;
+          }
+          .text-grad * {
+              -webkit-text-fill-color: ${c1val} !important;
+              color: ${c1val} !important;
+          }
+          /* 폰트 렌더링 강제 적용 */
+          .mv-title, .bp-iata, .bp-stub-iata, .bp-stub-seat-box span, .bp-grid-item.full span { 
+              font-family: 'Playfair Display', serif !important; 
+          }
           .mv-header, .mv-info-item label, .mv-info-item span, .mv-stub-text,
           .bp-airline-name, .bp-class-badge, .bp-grid-item label, .bp-grid-item span,
-          .bp-stub-top, .bp-city-name, .rc-sub, .rc-table th
-          { font-family: 'IBM Plex Mono', monospace !important; }
+          .bp-stub-top, .bp-city-name, .rc-sub, .rc-table th { 
+              font-family: 'IBM Plex Mono', monospace !important; 
+          }
           .rc-ticket, .rc-content, .rc-meta, .rc-meta-row span, .rc-table td, .rc-totals,
-          .rc-total-row, .rc-grand-total, .rc-item-name, .rc-item-qty, .rc-footer, .rc-msg
-          { font-family: 'Courier Prime', monospace !important; }
+          .rc-total-row, .rc-grand-total, .rc-item-name, .rc-item-qty, .rc-footer, .rc-msg { 
+              font-family: 'Courier Prime', monospace !important; 
+          }
           .rc-logo { font-family: 'Special Elite', cursive !important; }
           [data-html2canvas-ignore] { display: none !important; }
         `;
         cloneEl.appendChild(st);
 
-        // 3. 변형(드래그, 확대)된 이미지 렌더링을 위해 미리 구운 캔버스로 교체
+        // 2. 변형(드래그, 확대)된 이미지 렌더링을 위해 미리 구운 캔버스로 교체
         const origVPs = Array.from(el.querySelectorAll('.img-viewport'));
         const cloneVPs = Array.from(cloneEl.querySelectorAll('.img-viewport'));
 
@@ -744,7 +755,6 @@ async function exportPNG() {
     console.error(err);
     alert('저장 중 오류가 발생했습니다. 브라우저를 새로고침 후 다시 시도해주세요.\n에러 내용: ' + err.message);
   } finally {
-    // 성공/실패 여부 관계없이 버튼 복구
     btn.disabled = false; 
     btn.textContent = 'SAVE IMAGE';
   }
