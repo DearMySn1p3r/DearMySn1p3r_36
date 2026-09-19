@@ -4,960 +4,1060 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ticket Studio</title>
-  <link rel="icon" type="image/png" href="MOMO.png">
-  <link rel="apple-touch-icon" href="MOMO.png">
-<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,700;1,700&family=Special+Elite&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="MOMO.png">
+<link rel="apple-touch-icon" href="MOMO.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Big+Shoulders+Display:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  --bg: #f4f4f5;
-  --text: #222222;
-  --muted: #888888;
-  --border: #e0e0e0;
-  --c1: #f4b3c2;
-  --c2: #ffe1e8;
+  /* all theme-derived values are recalculated in JS (plain hex/rgb only, so PNG export stays safe) */
+  --c1: #efa9ba;
+  --c2: #ffe4ea;
   --grad: linear-gradient(135deg, var(--c1), var(--c2));
+  --grad-soft: linear-gradient(135deg, #fbe9ee, #fff4f7);
+  --accent-line: #ecc7cf;
+  --c1-deep: #a8787f;
+  --c1-a12: rgba(239,169,186,.16);
+  --paper: #f5eee9;          /* the mat behind each ticket (also fills perforation notches) */
+  --blob1: rgba(239,169,186,.30);
+  --blob2: rgba(255,228,234,.85);
+
+  --bg: #efe9e2;
+  --card: #fffdf9;
+  --ink: #2a2623;
+  --muted: #a19b93;
+  --line: #ece6de;
+  --sans: 'Inter', 'Pretendard', system-ui, sans-serif;
+  --serif: 'Instrument Serif', 'Pretendard', Georgia, serif;
+  --mono: 'JetBrains Mono', 'Pretendard', ui-monospace, monospace;
+  --kr: 'Pretendard', 'Inter', system-ui, sans-serif;
+  --display: 'Big Shoulders Display', 'Inter', system-ui, sans-serif;
+  --shadow: 0 1px 1px rgba(60,40,30,.04), 0 3px 8px -2px rgba(60,40,30,.06), 0 24px 44px -22px rgba(60,40,30,.28);
 }
 
+html, body { height: 100%; }
 body {
-  background: var(--bg);
-  font-family: 'Outfit', sans-serif;
-  color: var(--text);
-  min-height: 100vh;
+  color: var(--ink);
+  font-family: var(--sans);
   display: flex;
   flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+  background:
+    radial-gradient(640px 480px at 8% 0%, var(--blob1), transparent 70%),
+    radial-gradient(720px 560px at 100% 100%, var(--blob2), transparent 70%),
+    var(--bg);
+  transition: background .4s;
 }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+svg.i { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
 
-/* ── Topbar ── */
+/* ───────── Header ───────── */
 .topbar {
-  background: white;
-  height: 70px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 40px;
-  flex-shrink: 0;
-  z-index: 100;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+  position: relative; z-index: 5; flex-shrink: 0;
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+  padding: 18px 26px 8px;
 }
-.logo {
-  font-family: 'Special Elite', cursive;
-  font-size: 20px;
-  letter-spacing: 0.1em;
-  display: flex; align-items: center; gap: 8px;
+.brand { display: flex; align-items: center; gap: 11px; }
+.brand-mark {
+  width: 34px; height: 34px; border-radius: 11px; background: var(--grad); position: relative;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.55), 0 6px 14px -8px rgba(60,40,30,.45);
+  display: flex; align-items: center; justify-content: center; transform: rotate(-6deg);
 }
-.logo-icon {
-  background-image: var(--grad);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-}
+.brand-mark svg { width: 19px; height: 19px; }
+.brand-txt b { display: block; font: 400 22px/1 var(--serif); letter-spacing: -.01em; }
+.brand-txt small { display: block; margin-top: 4px; font: 500 10.5px/1 var(--kr); letter-spacing: .02em; color: var(--muted); }
 
-/* 그라데이션 텍스트 공통 클래스 */
-.text-grad {
-  background-image: var(--grad);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-  display: inline-block;
+.tabs {
+  display: flex; gap: 3px; padding: 4px; border-radius: 999px;
+  background: rgba(255,255,255,.55); border: 1px solid rgba(255,255,255,.8);
+  box-shadow: 0 8px 24px -14px rgba(60,40,30,.35); backdrop-filter: blur(16px);
 }
-div.text-grad, .mv-header.text-grad, .mv-cast.text-grad,
-.bp-stub-route.text-grad, .rc-logo.text-grad {
-  display: block;
-}
-span.text-grad, .mv-cast span.text-grad, .bp-stub-iata.text-grad,
-.bp-grid-item span.text-grad, .rc-grand-total span.text-grad {
-  display: inline-block;
-}
-.tab-nav { display: flex; gap: 10px; }
-.tab-btn {
-  padding: 8px 24px;
-  border: 1px solid transparent;
-  background: #f8f8f8;
-  border-radius: 40px;
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  color: var(--muted);
-}
-.tab-btn:hover { background: #eee; color: var(--text); }
-.tab-btn.active { background: var(--text); color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.tab { display: flex; align-items: center; gap: 7px; padding: 8px 16px; border-radius: 999px; font-size: 12.5px; font-weight: 500; color: #8d867e; transition: .2s; white-space: nowrap; }
+.tab:hover { color: var(--ink); }
+.tab.active { background: var(--ink); color: #fff; box-shadow: 0 4px 12px -6px rgba(0,0,0,.5); }
 
-.controls { display: flex; align-items: center; gap: 20px; }
-.color-wrap {
-  display: flex; align-items: center; gap: 8px;
-  background: #f8f8f8; padding: 6px 12px; border-radius: 30px; border: 1px solid var(--border);
+.head-r { display: flex; justify-content: flex-end; }
+.save {
+  background: var(--ink); color: #fff; padding: 10px 18px; border-radius: 999px; font-size: 12.5px; font-weight: 500;
+  display: flex; align-items: center; gap: 8px; transition: transform .15s, opacity .15s; white-space: nowrap;
+  box-shadow: 0 8px 20px -10px rgba(0,0,0,.55);
 }
-.color-wrap span { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; color: var(--muted); }
-.color-picker {
-  -webkit-appearance: none; border: none; width: 24px; height: 24px;
-  border-radius: 50%; overflow: hidden; cursor: pointer; padding: 0; background: transparent;
-}
-.color-picker::-webkit-color-swatch-wrapper { padding: 0; }
-.color-picker::-webkit-color-swatch { border: none; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1); }
+.save:hover { transform: translateY(-1px); }
+.save:disabled { opacity: .5; cursor: wait; transform: none; }
+.save-group { display: flex; gap: 4px; padding: 4px; border-radius: 999px; background: rgba(255,255,255,.55); border: 1px solid rgba(255,255,255,.8); box-shadow: 0 8px 24px -14px rgba(60,40,30,.35); backdrop-filter: blur(16px); }
+.save-group .save { padding: 8px 15px; box-shadow: none; }
+.save.gif { background: var(--grad-soft); color: var(--ink); border: 1px solid rgba(0,0,0,.04); }
+.save span { font-variant-numeric: tabular-nums; }
 
-.export-btn {
-  background-image: var(--grad);
-  color: var(--text);
-  border: none; padding: 10px 24px; border-radius: 30px;
-  font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 700;
-  cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  min-width: 130px;
+/* ───────── Workspace ───────── */
+.workspace { position: relative; z-index: 1; flex: 1; overflow: auto; padding: 22px 16px 120px; }
+.view { display: none; width: max-content; margin: 0 auto; flex-direction: column; align-items: center; gap: 14px; }
+.view.active { display: flex; animation: rise .45s cubic-bezier(.2,.8,.2,1); }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.stage {
+  position: relative; padding: 46px; border-radius: 34px; background: var(--paper);
+  border: 1px solid rgba(255,255,255,.7);
+  box-shadow: 0 1px 0 rgba(255,255,255,.8) inset, 0 40px 70px -50px rgba(60,40,30,.45);
+  transition: background .4s;
 }
-.export-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.12); }
-.export-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+.add-row { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: #8d867e; background: rgba(255,255,255,.55); border: 1px solid rgba(255,255,255,.85); border-radius: 999px; padding: 9px 18px; transition: .15s; }
+.add-row:hover { color: var(--ink); background: #fff; }
+.hint { text-align: center; font-size: 11px; color: #a39c93; margin-top: 18px; }
 
-/* ── Workspace ── */
-.workspace {
-  flex: 1;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 60px 40px;
-  overflow-y: auto;
-  min-height: 0;
-  background-image: radial-gradient(circle, #ddd 1px, transparent 1px);
-  background-size: 20px 20px;
+/* ───────── Dock ───────── */
+.dock {
+  position: fixed; z-index: 10; left: 50%; bottom: 20px; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 12px; padding: 9px 10px 9px 14px; border-radius: 999px;
+  background: rgba(255,255,255,.72); border: 1px solid rgba(255,255,255,.9);
+  box-shadow: 0 18px 40px -20px rgba(60,40,30,.45); backdrop-filter: blur(18px);
+  max-width: calc(100vw - 32px); white-space: nowrap;
 }
+.swatches { display: flex; align-items: center; gap: 7px; }
+.sw { width: 20px; height: 20px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.08); transition: transform .15s; }
+.sw:hover { transform: scale(1.15); }
+.sw.active { box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px var(--ink); }
+.divider { width: 1px; height: 20px; background: rgba(0,0,0,.08); }
+.picks { display: flex; gap: 5px; }
+.pick { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border: 0; border-radius: 50%; padding: 0; cursor: pointer; background: none; overflow: hidden; }
+.pick::-webkit-color-swatch-wrapper { padding: 0; }
+.pick::-webkit-color-swatch { border: 0; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
+.pick::-moz-color-swatch { border: 0; border-radius: 50%; }
+.dock-btn { display: flex; align-items: center; gap: 7px; padding: 8px 14px; border-radius: 999px; background: var(--grad-soft); border: 1px solid rgba(0,0,0,.04); font-size: 12px; font-weight: 500; transition: transform .15s; }
+.dock-btn:hover { transform: translateY(-1px); }
+.dock-btn.spin svg { animation: spin .5s ease; }
+@keyframes spin { to { transform: rotate(180deg); } }
 
-/* ── Inline Editable ── */
-[contenteditable="true"] {
-  outline: none;
-  border-bottom: 1px dashed transparent;
-  transition: all 0.2s;
-  border-radius: 2px;
-  padding: 0 2px;
-}
-[contenteditable="true"]:hover,
-[contenteditable="true"]:focus {
-  border-bottom-color: var(--c1);
-  background: rgba(0,0,0,0.03);
-}
-[contenteditable="true"]:empty::before { content: attr(data-placeholder); opacity: 0.3; pointer-events: none; }
+/* ───────── Editable ───────── */
+.e { outline: none; border-radius: 3px; transition: background .15s; cursor: text; }
+.e:hover { background: rgba(0,0,0,.04); }
+.e:focus { background: rgba(0,0,0,.07); }
+.e::selection { background: var(--c1-a12); }
 
-/* ── Image Viewport ── */
-.img-viewport {
-  position: relative;
-  overflow: hidden;
-  background: #f0f0f0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--border);
-  cursor: grab;
+/* ───────── Shared ticket parts ───────── */
+.card {
+  position: relative; border: 1px solid rgba(60,40,30,.05); box-shadow: var(--shadow);
+  background: var(--card);
 }
-.img-viewport:active { cursor: grabbing; }
-.img-viewport img {
-  position: absolute;
-  top: 0; left: 0;
-  width: auto; height: auto;
-  max-width: none; max-height: none;
-  transform-origin: center center;
-  display: none;
-  pointer-events: none;
-}
-.img-placeholder {
-  font-family: 'IBM Plex Mono', monospace; font-size: 11px;
-  color: var(--muted); pointer-events: none;
-  display: flex; flex-direction: column; align-items: center; gap: 8px;
-  z-index: 1;
-}
-.img-upload-trigger { display: none; }
-.img-tools {
-  position: absolute; top: 10px; right: 10px; display: none; gap: 6px; z-index: 10;
-}
-.img-viewport:hover .img-tools { display: flex; }
-.img-btn {
-  background: rgba(255,255,255,0.9); border: 1px solid var(--border); color: var(--text);
-  border-radius: 50%; width: 28px; height: 28px; cursor: pointer; font-size: 12px;
-  display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-}
-.img-btn:hover { background: white; color: var(--c1); transform: scale(1.05); }
+.lbl { display: block; font: 500 7.5px/1.2 var(--mono); letter-spacing: .18em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.val { display: block; font: 500 13px/1.25 var(--sans); white-space: nowrap; }
+.pill { display: inline-block; background: var(--grad-soft); border: 1px solid rgba(0,0,0,.04); border-radius: 999px; padding: 5px 11px; font: 500 9px/1.2 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--ink); white-space: nowrap; }
+.dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--grad); margin-right: 8px; flex-shrink: 0; vertical-align: middle; }
 
-/* ── Ticket Wrapper ── */
-.ticket-wrapper { display: none; flex-direction: column; align-items: center; }
-.ticket-wrapper.active { display: flex; }
-.ticket-container { position: relative; }
+.perf { position: relative; border-top: 1.5px dashed var(--accent-line); }
+.perf::before, .perf::after { content: ''; position: absolute; top: -11px; width: 22px; height: 22px; border-radius: 50%; background: var(--paper); }
+.perf::before { left: -11px; }
+.perf::after { right: -11px; }
+.perf-v { position: relative; border-left: 1.5px dashed var(--accent-line); }
+.perf-v::before, .perf-v::after { content: ''; position: absolute; left: -11px; width: 22px; height: 22px; border-radius: 50%; background: var(--paper); }
+.perf-v::before { top: -11px; }
+.perf-v::after { bottom: -11px; }
 
-/* ════════════════════════════════
-   1. MOVIE TICKET
-════════════════════════════════ */
-.mv-ticket {
-  width: 380px; background: #ffffff; border-radius: 12px;
-  box-shadow: 0 16px 40px rgba(0,0,0,0.06); color: var(--text);
-  overflow: hidden; position: relative; border: 1px solid var(--border);
-}
-.mv-ticket::before, .mv-ticket::after {
-  content: ''; position: absolute; top: 62%; width: 24px; height: 24px;
-  background: var(--bg); border-radius: 50%; z-index: 10; border: 1px solid var(--border);
-}
-.mv-ticket::before { left: -13px; }
-.mv-ticket::after { right: -13px; }
-.mv-inner { padding: 28px 24px; }
-.mv-header {
-  text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 10px;
-  letter-spacing: 0.3em; font-weight: 700; margin-bottom: 24px;
-}
-.mv-img-box { width: 100%; aspect-ratio: 4/3; border-radius: 8px; margin-bottom: 24px; }
-.mv-body { text-align: center; }
-.mv-title { font-family: 'Playfair Display', serif; font-size: 34px; font-weight: 800; line-height: 1.1; margin-bottom: 6px; }
-.mv-subtitle { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.1em; opacity: 0.6; }
-.mv-cast { margin-top: 20px; font-family: 'Playfair Display', serif; font-size: 18px; font-style: italic; font-weight: 700; }
-.mv-info-grid {
-  display: grid; grid-template-columns: 1fr 1fr;
-  border-top: 1px dashed var(--border); border-bottom: 1px dashed var(--border);
-  margin-top: 24px; padding: 16px 0; gap: 14px; text-align: left;
-}
-.mv-info-item label { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--muted); margin-bottom: 4px; letter-spacing: 0.05em; }
-.mv-info-item span { font-size: 14px; font-weight: 600; }
-.mv-stub {
-  padding: 24px; text-align: center; background: #fafafa;
-  display: flex; flex-direction: column; align-items: center; gap: 14px;
-}
-.mv-barcode { width: 100%; height: 40px; opacity: 0.8; }
-.mv-stub-text { font-family: 'IBM Plex Mono', monospace; font-size: 11px; opacity: 0.5; }
+.barcode { cursor: pointer; }
+.barcode svg { display: block; width: 100%; height: 100%; }
 
-/* ════════════════════════════════
-   2. BOARDING PASS  ← 핵심 수정
-════════════════════════════════ */
-.bp-ticket {
-  /* FIX: 760→820px — IATA·도시명이 잘리지 않도록 너비 확장 */
-  width: 820px;
-  background: white; border-radius: 16px;
-  box-shadow: 0 16px 40px rgba(0,0,0,0.06); display: flex;
-  overflow: hidden; border: 1px solid var(--border); color: var(--text);
-}
-.bp-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-.bp-top-bar {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 16px 28px; border-bottom: 1px solid var(--border);
-}
-.bp-airline-name { font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 700; letter-spacing: 0.1em; white-space: nowrap; }
-.bp-class-badge { font-family: 'IBM Plex Mono', monospace; background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.5); padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; color: white; -webkit-text-fill-color: white; }
-/* FIX: padding·gap 축소 → bp-content 가용폭 확보 */
-.bp-body { display: flex; flex: 1; padding: 24px 24px; gap: 24px; min-width: 0; }
-.bp-img-side { width: 175px; height: 175px; border-radius: 16px; flex-shrink: 0; }
-.bp-content { flex: 1; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
-.bp-route {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 28px; gap: 8px;
-}
-/* FIX: flex-shrink:0 → 너비 여유 없으면 IATA 영역이 밀림.
-   min-width:0 + overflow:hidden 으로 컨테이너 내부 제한 */
-.bp-route-side {
-  flex-shrink: 0;
-  min-width: 0;
-  overflow: hidden;
-}
-.bp-route-side.right { text-align: right; }
-/* FIX: 46→40px — 긴 IATA도 안전하게 표시 */
-.bp-iata {
-  font-family: 'Playfair Display', serif; font-size: 40px; font-weight: 800;
-  line-height: 1; display: block; white-space: nowrap; min-width: 0;
-}
-.bp-iata.text-grad { display: block; white-space: nowrap; }
-/* FIX: white-space:nowrap 제거 → 긴 도시명 자동 줄바꿈 허용 */
-.bp-city-name {
-  font-size: 11px; color: var(--muted); margin-top: 6px;
-  font-weight: 600; text-transform: uppercase;
-  white-space: normal; word-break: break-word;
-  max-width: 110px;
-}
-.bp-route-side.right .bp-city-name { margin-left: auto; }
-.bp-flight-icon { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 0 12px; min-width: 40px; }
-.bp-flight-icon svg { width: 24px; height: 24px; margin-bottom: 8px; opacity: 0.9; }
-.bp-flight-line { width: 100%; border-top: 2px dashed var(--border); }
-.bp-grid { display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 18px 14px; }
-.bp-grid-item label { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); margin-bottom: 4px; letter-spacing: 0.05em; }
-/* FIX: white-space:nowrap → long values도 안전하게 */
-.bp-grid-item span { font-size: 14px; font-weight: 700; white-space: nowrap; }
-.bp-grid-item.full { grid-column: span 3; margin-bottom: 4px; }
-.bp-grid-item.full span { font-size: 18px; font-family: 'Playfair Display', serif; font-style: italic; }
-.bp-stub {
-  width: 230px; background: #fafafa; border-left: 1px dashed var(--border);
-  padding: 24px; display: flex; flex-direction: column; position: relative;
-  flex-shrink: 0;
-}
-.bp-stub::before, .bp-stub::after {
-  content: ''; position: absolute; left: -12px; width: 24px; height: 24px;
-  background: var(--bg); border-radius: 50%; border: 1px solid var(--border);
-}
-.bp-stub::before { top: -13px; }
-.bp-stub::after { bottom: -13px; }
-.bp-stub-top { text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); margin-bottom: 24px; font-weight: 600; }
-.bp-stub-route { display: flex; align-items: center; gap: 8px; margin-bottom: 24px; flex-wrap: nowrap; }
-.bp-stub-iata { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 800; white-space: nowrap; }
-.bp-stub-seat-box {
-  background: white; border: 1px solid var(--border); border-radius: 12px; padding: 16px;
-  text-align: center; margin-bottom: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.02);
-}
-.bp-stub-seat-box label { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); margin-bottom: 6px; }
-.bp-stub-seat-box span { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 800; line-height: 1; }
-.bp-stub-barcode { margin-top: 20px; opacity: 0.7; }
 
-/* ════════════════════════════════
-   3. RECEIPT  ← 수정
-════════════════════════════════ */
-.rc-ticket {
-  width: 340px; background: white; font-family: 'Courier Prime', monospace;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.04); color: var(--text);
-  border: 1px solid var(--border); border-radius: 8px;
+/* Photo slot */
+.ph { position: relative; overflow: hidden; background: var(--grad); cursor: pointer; touch-action: none; user-select: none; }
+.ph.has { cursor: grab; }
+.ph.has:active { cursor: grabbing; }
+.ph input { display: none; }
+.ph img { position: absolute; left: 0; top: 0; max-width: none; display: none; pointer-events: none; transform-origin: center; }
+.ph.has img { display: block; }
+.ph-empty { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 6px; align-items: center; justify-content: center; font: 500 8.5px var(--mono); letter-spacing: .18em; text-transform: uppercase; color: rgba(60,40,30,.35); pointer-events: none; }
+.ph.has .ph-empty { display: none; }
+.ph-tools { position: absolute; right: 8px; bottom: 8px; display: flex; gap: 4px; opacity: 0; transition: opacity .15s; z-index: 3; }
+.ph:hover .ph-tools { opacity: 1; }
+.ph:not(.has) .ph-tools { display: none; }
+.ph-tools button { width: 26px; height: 26px; border-radius: 50%; background: rgba(255,255,255,.94); color: var(--ink); font-size: 13px; line-height: 1; box-shadow: 0 1px 4px rgba(0,0,0,.14); display: flex; align-items: center; justify-content: center; }
+@media (hover: none) { .ph-tools { opacity: 1; } }
+
+
+/* ═════════ 1. MOVIE — 35mm film stub ═════════ */
+.mv { width: 346px; border-radius: 20px; overflow: hidden; padding: 12px 12px 0; }
+.mv-top { display: flex; justify-content: space-between; align-items: center; padding: 6px 6px 12px; font: 500 8.5px/1.2 var(--mono); letter-spacing: .2em; color: var(--muted); }
+
+.mv-film { position: relative; background: #211c1a; border-radius: 12px; padding: 16px 21px 10px; }
+.mv-film::before, .mv-film::after {
+  content: ''; position: absolute; top: 14px; bottom: 14px; width: 7px;
+  background: linear-gradient(to bottom, #f3ece2 0, #f3ece2 6px, transparent 6px) 0 0 / 7px 12px repeat-y;
+  opacity: .88;
 }
-.rc-content { padding: 32px 24px; }
-.rc-header {
-  text-align: center; padding-bottom: 24px; margin-bottom: 24px;
-  border-bottom: 1px dashed var(--border);
-  /* FIX: 그라데이션 텍스트 클리핑 방지 */
-  overflow: visible;
+.mv-film::before { left: 7px; }
+.mv-film::after { right: 7px; }
+.mv-photo { aspect-ratio: 4 / 5; border-radius: 3px; }
+.mv-photo::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(40,20,10,.18)); pointer-events: none; }
+.mv-film-cap { display: flex; justify-content: space-between; align-items: center; padding-top: 9px; font: 500 7px/1 var(--mono); letter-spacing: .22em; color: var(--c1); }
+
+.mv-body { position: relative; padding: 24px 8px 20px; }
+.mv-kicker { display: inline-block; font: italic 400 16px/1 var(--serif); color: var(--c1-deep); margin-bottom: 9px; }
+.mv-title { font: 400 46px/.9 var(--serif); letter-spacing: -.015em; max-width: 222px; }
+.mv-sub { margin-top: 11px; font-size: 12px; line-height: 1.45; color: var(--muted); max-width: 222px; }
+.mv-stamp {
+  position: absolute; right: 8px; top: 22px; width: 68px; height: 68px; border-radius: 50%;
+  border: 1px solid var(--c1-deep); color: var(--c1-deep);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  transform: rotate(-10deg);
 }
-/* FIX: rc-logo padding 추가 → text-grad 상하 클리핑 방지 */
+.mv-stamp span { font: 500 5.5px/1 var(--mono); letter-spacing: .22em; }
+.mv-stamp b { font: 400 25px/1 var(--serif); }
+.mv-grid { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 22px; border-top: 1px solid var(--ink); }
+.mv-grid > div { padding: 11px 0 11px 12px; border-left: 1px solid var(--line); }
+.mv-grid > div:nth-child(3n+1) { padding-left: 0; border-left: 0; }
+.mv-grid > div:nth-child(-n+3) { border-bottom: 1px solid var(--line); }
+.mv .lbl { font-size: 7px; margin-bottom: 5px; }
+.mv .perf { margin: 0 -12px; }
+.mv-stub { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; padding: 16px 8px 17px; }
+.mv-guest { display: flex; align-items: center; }
+.mv-code { width: 108px; flex-shrink: 0; text-align: right; }
+.mv-code .barcode { height: 28px; opacity: .85; }
+.mv-code small { display: block; margin-top: 5px; font: 500 6.5px/1 var(--mono); letter-spacing: .2em; color: var(--muted); }
+
+/* ═════════ 2. BOARDING PASS ═════════ */
+.bp { width: 800px; display: flex; border-radius: 20px; overflow: hidden; }
+.bp-main { flex: 1; min-width: 0; padding: 22px 28px 18px; position: relative; }
+.bp-main > * { position: relative; }
+.bp-head { display: flex; justify-content: space-between; align-items: center; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+.bp-airline { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 12px; letter-spacing: .16em; text-transform: uppercase; }
+.bp-mark { width: 24px; height: 24px; border-radius: 50%; background: var(--grad); flex-shrink: 0; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 1px rgba(255,255,255,.55); }
+.bp-mark svg { width: 13px; height: 13px; }
+.bp-body { display: flex; gap: 24px; padding-top: 20px; }
+.bp-photo { width: 132px; height: 176px; border-radius: 12px; flex-shrink: 0; }
+.bp-info { flex: 1; min-width: 0; }
+.bp-route { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; }
+.bp-iata { font: 300 50px/1 var(--sans); letter-spacing: -.045em; white-space: nowrap; }
+.bp-city { font: 500 8.5px/1.2 var(--mono); letter-spacing: .16em; color: var(--muted); text-transform: uppercase; margin-top: 7px; }
+.bp-to { text-align: right; }
+.bp-path { display: flex; flex-direction: column; align-items: center; gap: 3px; padding-bottom: 8px; }
+.bp-path svg { width: 100%; height: 44px; display: block; }
+.bp-dur { font: 500 7.5px/1 var(--mono); letter-spacing: .2em; color: var(--muted); }
+.bp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 13px 14px; margin-top: 18px; padding-top: 15px; border-top: 1px solid var(--line); }
+.bp-pax { grid-column: 1 / -1; }
+.bp-pax .val { font: 400 28px/1 var(--serif); }
+.bp .lbl { font-size: 7.5px; }
+.bp-foot { display: flex; justify-content: space-between; margin-top: 18px; padding-top: 11px; border-top: 1px dashed var(--line); font: 500 7px/1 var(--mono); letter-spacing: .2em; color: #b5aea5; text-transform: uppercase; }
+
+.bp-stub { width: 212px; flex-shrink: 0; display: flex; flex-direction: column; }
+.bp-stub-band { background: var(--grad); padding: 24px 20px 18px 22px; }
+.bp-stub-band .lbl { color: rgba(0,0,0,.5); }
+.bp-stub-route { font-weight: 500; font-size: 17px; letter-spacing: .04em; white-space: nowrap; }
+.bp-stub-body { flex: 1; display: flex; flex-direction: column; padding: 18px 20px 20px 22px; }
+.bp-seat { font: 300 62px/1 var(--sans); letter-spacing: -.05em; margin-bottom: 18px; }
+.bp-stub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-top: 14px; border-top: 1px solid var(--line); }
+.bp-bc { margin-top: auto; padding-top: 18px; }
+.bp-bc .barcode { height: 32px; opacity: .8; }
+
+/* ═════════ 3. TRAIN ═════════ */
+.tr { width: 640px; border-radius: 18px; overflow: hidden; }
+.tr-head { position: relative; display: flex; justify-content: space-between; align-items: center; padding: 14px 24px 14px 20px; background: var(--grad); }
+.tr-head > * { position: relative; z-index: 1; }
+.tr-op { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; }
+.tr-logo { width: 26px; height: 26px; border-radius: 50%; background: #fffdf9; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.tr-logo svg { width: 15px; height: 15px; }
+.tr-kind { font: 500 8.5px/1.2 var(--mono); letter-spacing: .16em; color: rgba(0,0,0,.55); }
+
+.tr-main { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 18px; padding: 28px 26px 24px; }
+.tr-st-kr { font: 700 38px/1.05 var(--kr); letter-spacing: -.05em; }
+.tr-st-en { font: 500 8.5px/1.2 var(--mono); letter-spacing: .2em; color: var(--muted); margin-top: 7px; text-transform: uppercase; }
+.tr-time { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
+.tr-to .tr-time { justify-content: flex-end; }
+.tr-time small { font: 500 7px/1 var(--mono); letter-spacing: .18em; color: var(--c1-deep); background: var(--c1-a12); padding: 4px 6px; border-radius: 4px; }
+.tr-time .e { font: 600 34px/1 var(--display); letter-spacing: .01em; }
+.tr-to { text-align: right; }
+.tr-mid { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 160px; }
+.tr-line { width: 100%; display: flex; align-items: center; }
+.tr-line i { flex: 1; height: 1.5px; background: var(--ink); }
+.tr-line b { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--ink); background: var(--card); flex-shrink: 0; }
+.tr-line b.f { background: var(--ink); }
+.tr-line b.s { width: 6px; height: 6px; border: 0; background: var(--c1); }
+.tr-dur { font: 500 9px/1.2 var(--mono); color: var(--muted); letter-spacing: .12em; }
+
+.tr-grid { display: grid; grid-template-columns: 1.35fr .7fr .85fr 1fr 1.2fr; margin: 20px 26px 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.tr-grid > div { padding: 11px 12px 12px; border-left: 1px solid var(--line); }
+.tr-grid > div:first-child { border-left: 0; }
+.tr-grid > .hi { background: var(--grad-soft); }
+.tr .lbl { font-size: 7px; margin-bottom: 5px; }
+.tr-foot { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 15px 26px 20px; }
+.tr-foot-l { display: flex; align-items: center; gap: 10px; }
+.tr-no { font: 500 8.5px/1.2 var(--mono); letter-spacing: .12em; color: var(--muted); }
+.tr-tag { font: 500 7.5px/1 var(--mono); letter-spacing: .16em; color: var(--c1-deep); border: 1px solid var(--accent-line); border-radius: 999px; padding: 4px 8px; }
+.tr-foot .barcode { width: 150px; height: 26px; opacity: .75; }
+
+/* ═════════ 4. RECEIPT ═════════ */
+.rc { position: relative; width: 322px; font: 400 11px/1.5 var(--mono); filter: drop-shadow(0 16px 26px rgba(60,40,30,.14)); }
+.rc-edge { line-height: 0; }
+.rc-edge svg { display: block; width: 100%; }
+.rc-paper {
+  position: relative; padding: 20px 26px 24px;
+  background: var(--card);
+}
+.rc-stamp {
+  position: absolute; top: 16px; right: 16px; width: 56px; height: 56px; border-radius: 50%;
+  border: 1px solid var(--c1-deep); color: var(--c1-deep); transform: rotate(12deg);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+}
+.rc-stamp b { font: 500 11px/1 var(--mono); letter-spacing: .14em; }
+.rc-stamp small { font: 500 5px/1 var(--mono); letter-spacing: .2em; }
+.rc-head { text-align: center; padding-top: 6px; }
 .rc-logo {
-  font-size: 28px; font-weight: 700; margin-bottom: 8px;
-  font-family: 'Special Elite', cursive;
-  padding: 4px 0;
-  line-height: 1.3;
+  width: 40px; height: 40px; margin: 0 auto 11px; border-radius: 50%; background: var(--grad);
+  display: flex; align-items: center; justify-content: center; font: italic 400 21px/1 var(--serif);
+  box-shadow: 0 0 0 4px var(--card), 0 0 0 5px var(--accent-line);
 }
-.rc-sub { font-size: 11px; color: var(--muted); letter-spacing: 0.1em; }
-.rc-meta { font-size: 12px; line-height: 2; margin-bottom: 24px; }
-.rc-meta-row { display: flex; justify-content: space-between; }
-.rc-meta-row label { color: var(--muted); }
-.rc-img-box { width: 100%; aspect-ratio: 1/1; border-radius: 8px; margin-bottom: 24px; }
-.rc-table { width: 100%; font-size: 12px; line-height: 2.2; border-collapse: collapse; }
-.rc-table th { text-align: left; color: var(--muted); font-weight: 700; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
-.rc-table th:last-child { text-align: right; }
-.rc-table td { padding-top: 10px; vertical-align: top; }
-.rc-table td:last-child { text-align: right; }
-.rc-item-name { display: block; font-weight: 700; color: var(--text); }
-.rc-item-qty { color: var(--muted); font-size: 11px; }
-.rc-del-btn { display: inline-block; color: #ccc; cursor: pointer; padding: 0 4px; opacity: 0; transition: opacity 0.2s; font-family: sans-serif; }
-tr:hover .rc-del-btn { opacity: 1; }
-.rc-del-btn:hover { color: red; }
-.rc-totals { margin-top: 16px; border-top: 1px dashed var(--border); padding-top: 20px; }
-.rc-total-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 8px; color: var(--muted); }
-.rc-grand-total {
-  display: flex; justify-content: space-between; align-items: center; margin-top: 20px;
-  background: #fafafa; padding: 16px; border-radius: 8px; border: 1px solid var(--border);
-}
-.rc-grand-total label { font-size: 13px; font-weight: 700; }
-/* FIX: grand-total span padding → 그라데이션 텍스트 상하 클리핑 방지 */
-.rc-grand-total span { font-size: 22px; font-weight: 700; padding: 2px 0; line-height: 1.3; }
-.rc-footer { text-align: center; margin-top: 28px; }
-.rc-barcode { width: 100%; height: 44px; opacity: 0.6; margin-bottom: 16px; }
-/* FIX: rc-msg padding → 텍스트 하단 클리핑 방지 */
-.rc-msg { font-size: 11px; color: var(--muted); letter-spacing: 0.1em; padding-bottom: 2px; }
+.rc-store { font: 400 32px/1.05 var(--serif); letter-spacing: -.02em; }
+.rc-sub { font-size: 7.5px; letter-spacing: .28em; color: var(--muted); margin-top: 7px; }
+.rc-rule { border-top: 1px dashed #ddd6cc; margin: 15px 0; }
+.rc-rule.dbl { border-top: 3px double #d1c9be; }
+.rc-meta { display: grid; gap: 4px; }
+.rc-row { display: flex; justify-content: space-between; gap: 10px; }
+.rc-row > span:first-child { color: var(--muted); }
+.rc-photo { aspect-ratio: 3 / 2; border-radius: 6px; }
+.rc-items { display: grid; gap: 9px; }
+.rc-item { display: flex; align-items: baseline; position: relative; }
+.rc-item .name { font-weight: 500; letter-spacing: .02em; }
+.rc-item .qty { color: var(--muted); margin-left: 6px; }
+.rc-item .lead { flex: 1; min-width: 12px; margin: 0 7px; border-bottom: 1px dotted #cdc5bb; position: relative; top: -3px; }
+.rc-del { position: absolute; left: -19px; top: 1px; color: #bbb; font-size: 10px; opacity: 0; transition: opacity .15s; }
+.rc-item:hover .rc-del { opacity: 1; }
+.rc-del:hover { color: #d33; }
+.rc-total { display: flex; justify-content: space-between; align-items: center; background: var(--grad-soft); border: 1px solid rgba(0,0,0,.04); border-radius: 10px; padding: 12px 14px; margin-top: 14px; }
+.rc-total b { font-weight: 500; font-size: 9.5px; letter-spacing: .2em; }
+.rc-total-amt { font: 400 27px/1 var(--serif); letter-spacing: -.01em; }
+.rc-total-amt small { font: 400 15px/1 var(--serif); margin-right: 3px; color: var(--c1-deep); }
+.rc-foot { text-align: center; margin-top: 22px; }
+.rc-foot .barcode { height: 34px; margin-bottom: 6px; opacity: .75; }
+.rc-no { font-size: 7.5px; letter-spacing: .3em; color: var(--muted); }
+.rc-msg { margin-top: 12px; font: italic 400 16px/1 var(--serif); color: var(--c1-deep); }
 
-.add-row-btn {
-  margin-top: 20px; background: transparent; border: 1px dashed var(--border); color: var(--muted);
-  padding: 12px 24px; border-radius: 30px; font-family: 'IBM Plex Mono', monospace; font-size: 12px;
-  font-weight: 600; cursor: pointer; transition: all 0.2s; width: 100%; max-width: 340px;
+/* ───────── Responsive ───────── */
+@media (max-width: 900px) {
+  .topbar { grid-template-columns: 1fr auto; padding: 14px 16px 6px; row-gap: 12px; }
+  .brand { grid-column: 1; grid-row: 1; }
+  .head-r { grid-column: 2; grid-row: 1; }
+  .tabs { grid-column: 1 / -1; grid-row: 2; overflow-x: auto; justify-self: start; max-width: 100%; }
+  .workspace { padding-top: 14px; }
+  .dock { overflow-x: auto; bottom: 12px; }
 }
-.add-row-btn:hover { border-color: var(--text); color: var(--text); background: white; }
+@media (max-width: 560px) {
+  .tab { padding: 8px 12px; }
+  .tab svg { display: none; }
+  .dock-lbl, .picks, .dock .divider:first-of-type { display: none; }
+  .brand-txt small { display: none; }
+  .dock { gap: 10px; padding: 8px 8px 8px 14px; }
+  .sw { width: 22px; height: 22px; }
+  .dock-btn span { display: none; }
+  .dock-btn { padding: 8px 10px; }
+  .stage { padding: 30px 26px; border-radius: 26px; }
+}
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #d0d0d0; border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: #aaa; }
+::-webkit-scrollbar-thumb { background: rgba(60,40,30,.18); border-radius: 10px; }
 </style>
 </head>
 <body>
 
 <header class="topbar">
-  <div class="logo"><span class="logo-icon text-grad">✦</span> TICKET STUDIO</div>
-
-  <div class="tab-nav">
-    <button class="tab-btn active" onclick="switchTab('movie', this)">MOVIE</button>
-    <button class="tab-btn" onclick="switchTab('boarding', this)">BOARDING</button>
-    <button class="tab-btn" onclick="switchTab('receipt', this)">RECEIPT</button>
+  <div class="brand">
+    <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#2a2623" stroke-width="1.6" stroke-linejoin="round"><path d="M4 7a1.5 1.5 0 0 1 1.5-1.5h13A1.5 1.5 0 0 1 20 7v2.5a2.5 2.5 0 0 0 0 5V17a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17v-2.5a2.5 2.5 0 0 0 0-5z"/><path d="M14.5 6v12" stroke-dasharray="1.6 1.8"/></svg></span>
+    <div class="brand-txt"><b>Ticket Studio</b><small>우리의 순간을 티켓으로</small></div>
   </div>
 
-  <div class="controls">
-    <div class="color-wrap">
-      <span>Color</span>
-      <input type="color" class="color-picker" id="c1" value="#f4b3c2" oninput="updateGrad()">
-      <input type="color" class="color-picker" id="c2" value="#ffe1e8" oninput="updateGrad()">
+  <nav class="tabs">
+    <button class="tab active" data-tab="movie">
+      <svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M7.5 4v16M16.5 4v16M3 9h4.5M3 15h4.5M16.5 9H21M16.5 15H21"/></svg>Movie
+    </button>
+    <button class="tab" data-tab="boarding">
+      <svg class="i" viewBox="0 0 24 24"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>Boarding
+    </button>
+    <button class="tab" data-tab="train">
+      <svg class="i" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="14" rx="4"/><path d="M5 10h14M8.5 21l2-3.5M15.5 21l-2-3.5"/></svg>Train
+    </button>
+    <button class="tab" data-tab="receipt">
+      <svg class="i" viewBox="0 0 24 24"><path d="M6 3h12v18l-2-1.5-2 1.5-2-1.5-2 1.5-2-1.5L6 21z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>Receipt
+    </button>
+  </nav>
+
+  <div class="head-r">
+    <div class="save-group">
+      <button class="save" id="save" title="고화질 이미지로 저장">
+        <svg class="i" viewBox="0 0 24 24"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+        <span>PNG</span>
+      </button>
+      <button class="save gif" id="save-gif" title="살짝 떠오르며 반짝이는 움직이는 이미지로 저장">
+        <svg class="i" viewBox="0 0 24 24"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg>
+        <span>GIF</span>
+      </button>
     </div>
-    <button class="export-btn bg-grad" id="saveBtn" onclick="exportPNG()">SAVE IMAGE</button>
   </div>
 </header>
 
 <main class="workspace">
 
-  <!-- ── MOVIE ── -->
-  <div id="view-movie" class="ticket-wrapper active">
-    <div class="ticket-container" id="export-movie">
-      <div class="mv-ticket">
-        <div class="mv-inner">
-          <div class="mv-header text-grad">ADMIT ONE ✦ CINEMA</div>
-
-          <div class="img-viewport mv-img-box" id="mv-img-vp" onclick="clickUpload(this)">
-            <input type="file" class="img-upload-trigger" accept="image/*" onchange="handleImgUpload(this,'mv-img-vp')">
-            <div class="img-placeholder"><span>+</span>Click to Add Photo</div>
-            <img src="" alt="">
-            <div class="img-tools" data-html2canvas-ignore="true">
-              <button class="img-btn" onclick="event.stopPropagation();zoomImg('mv-img-vp',0.1)">+</button>
-              <button class="img-btn" onclick="event.stopPropagation();zoomImg('mv-img-vp',-0.1)">−</button>
-              <button class="img-btn" onclick="event.stopPropagation();clearImg('mv-img-vp')">✕</button>
-            </div>
-          </div>
-
-          <div class="mv-body">
-            <div class="mv-title" contenteditable="true" spellcheck="false">MOVIE TITLE</div>
-            <div class="mv-subtitle" contenteditable="true" spellcheck="false">SPECIAL SCREENING</div>
-            <div class="mv-cast text-grad">
-              <span contenteditable="true" spellcheck="false">NAME A</span> &amp;
-              <span contenteditable="true" spellcheck="false">NAME B</span>
-            </div>
-            <div class="mv-info-grid">
-              <div class="mv-info-item"><label>DATE</label><span contenteditable="true" spellcheck="false">2026.05.25</span></div>
-              <div class="mv-info-item"><label>TIME</label><span contenteditable="true" spellcheck="false">19:00 - 21:00</span></div>
-              <div class="mv-info-item"><label>SEAT</label><span contenteditable="true" spellcheck="false">A1, A2</span></div>
-              <div class="mv-info-item"><label>INFO</label><span contenteditable="true" spellcheck="false">SCREEN A / 30,000</span></div>
-            </div>
+  <!-- ── 1. MOVIE ── -->
+  <section class="view active" id="view-movie">
+    <div class="stage" id="stage-movie">
+      <article class="card mv">
+        <div class="mv-top"><span class="e">ADMIT ONE</span><span class="e" data-code="NO. ####">NO. 0142</span></div>
+        <div class="mv-film">
+          <div class="ph mv-photo"></div>
+          <div class="mv-film-cap"><span>▸ 24</span><span class="e">CINEMA · 35MM</span><span>24A</span></div>
+        </div>
+        <div class="mv-body">
+          <div class="mv-kicker e">Special Screening</div>
+          <div class="mv-title e">Movie Title</div>
+          <div class="mv-sub e">A special screening for two</div>
+          <div class="mv-stamp"><span>ADMIT</span><b class="e">02</b><span>PERSONS</span></div>
+          <div class="mv-grid">
+            <div><span class="lbl e">Date</span><span class="val e">2026.09.19</span></div>
+            <div><span class="lbl e">Time</span><span class="val e">19:30</span></div>
+            <div><span class="lbl e">Screen</span><span class="val e">Hall 3</span></div>
+            <div><span class="lbl e">Row</span><span class="val e">F</span></div>
+            <div><span class="lbl e">Seat</span><span class="val e">12, 13</span></div>
+            <div><span class="lbl e">Price</span><span class="val e">₩30,000</span></div>
           </div>
         </div>
+        <div class="perf"></div>
         <div class="mv-stub">
-          <div class="mv-barcode" id="bc-mv"></div>
-          <div class="mv-stub-text" contenteditable="true" spellcheck="false">THANK YOU FOR COMING</div>
+          <div>
+            <span class="lbl e">Guest</span>
+            <div class="val mv-guest"><span class="dot"></span><span class="e">Name A &amp; Name B</span></div>
+          </div>
+          <div class="mv-code">
+            <div class="barcode" title="눌러서 바코드 새로 뽑기"></div>
+            <small class="e" data-code="#### #### ####">0142 2609 1930</small>
+          </div>
         </div>
-      </div>
+      </article>
     </div>
-  </div>
+  </section>
 
-  <!-- ── BOARDING PASS ── -->
-  <div id="view-boarding" class="ticket-wrapper">
-    <div class="ticket-container" id="export-boarding">
-      <div class="bp-ticket">
+  <!-- ── 2. BOARDING PASS ── -->
+  <section class="view" id="view-boarding">
+    <div class="stage" id="stage-boarding">
+      <article class="card bp">
         <div class="bp-main">
-          <div class="bp-top-bar bg-grad">
-            <div class="bp-airline-name" style="-webkit-text-fill-color:#fff;color:#fff;" contenteditable="true" spellcheck="false">AIRLINE NAME</div>
-            <div class="bp-class-badge" contenteditable="true" spellcheck="false">FIRST CLASS</div>
+          <div class="bp-head">
+            <div class="bp-airline">
+              <span class="bp-mark"><svg viewBox="0 0 24 24"><g transform="rotate(45 12 12)"><path fill="#ffffff" d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></g></svg></span>
+              <span class="e">Airline Name</span>
+            </div>
+            <span class="pill keep e">First Class</span>
           </div>
-
           <div class="bp-body">
-            <div class="img-viewport bp-img-side" id="bp-img-vp" onclick="clickUpload(this)">
-              <input type="file" class="img-upload-trigger" accept="image/*" onchange="handleImgUpload(this,'bp-img-vp')">
-              <div class="img-placeholder"><span>+</span>Photo</div>
-              <img src="" alt="">
-              <div class="img-tools" data-html2canvas-ignore="true" style="top:5px;right:5px;">
-                <button class="img-btn" onclick="event.stopPropagation();zoomImg('bp-img-vp',0.1)">+</button>
-                <button class="img-btn" onclick="event.stopPropagation();zoomImg('bp-img-vp',-0.1)">−</button>
-                <button class="img-btn" onclick="event.stopPropagation();clearImg('bp-img-vp')">✕</button>
-              </div>
-            </div>
-
-            <div class="bp-content">
+            <div class="ph bp-photo"></div>
+            <div class="bp-info">
               <div class="bp-route">
-                <!-- FIX: div에 bp-route-side 클래스 추가 (min-width:0, overflow:hidden 적용) -->
-                <div class="bp-route-side">
-                  <div class="bp-iata text-grad" contenteditable="true" spellcheck="false">ICN</div>
-                  <div class="bp-city-name" contenteditable="true" spellcheck="false">SEOUL</div>
-                </div>
-
-                <div class="bp-flight-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M17.8 19.2 16 11l3.5-3.5a2.12 2.12 0 0 0-3-3L13 8 4.8 6.2 3.5 7.5l6.4 2.8L7.2 13 4 12.5 3 13.5l3.5 2.5L9 19.5l1-1-.5-3.2 2.7-2.7 2.8 6.4 1.3-1.3z" fill="var(--c1)" stroke="none"/>
+                <div><div class="bp-iata e">ICN</div><div class="bp-city e">Seoul</div></div>
+                <div class="bp-path">
+                  <svg viewBox="0 0 140 44" preserveAspectRatio="xMidYMid meet">
+                    <path d="M6 38 Q70 -6 134 38" fill="none" stroke="#2a2623" stroke-opacity=".38" stroke-width="1.2" stroke-dasharray="2 3.2"/>
+                    <circle cx="6" cy="38" r="2.6" fill="#fffdf9" stroke="#2a2623" stroke-width="1.2"/>
+                    <circle cx="134" cy="38" r="2.6" fill="#2a2623"/>
+                    <g transform="translate(61 7) scale(.75)"><g transform="rotate(90 12 12)"><path fill="#2a2623" d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></g></g>
                   </svg>
-                  <div class="bp-flight-line"></div>
+                  <span class="bp-dur e">14H 00M · NONSTOP</span>
                 </div>
-
-                <!-- FIX: right 클래스 추가 → text-align:right 적용 -->
-                <div class="bp-route-side right">
-                  <div class="bp-iata text-grad" contenteditable="true" spellcheck="false">JFK</div>
-                  <div class="bp-city-name" style="text-align:right;" contenteditable="true" spellcheck="false">NEW YORK</div>
-                </div>
+                <div class="bp-to"><div class="bp-iata e">JFK</div><div class="bp-city e">New York</div></div>
               </div>
-
               <div class="bp-grid">
-                <div class="bp-grid-item full"><label>PASSENGER</label><span class="text-grad" contenteditable="true" spellcheck="false">LAST / FIRST</span></div>
-                <div class="bp-grid-item"><label>FLIGHT</label><span contenteditable="true" spellcheck="false">FL000</span></div>
-                <div class="bp-grid-item"><label>DATE</label><span contenteditable="true" spellcheck="false">25 MAY 2026</span></div>
-                <div class="bp-grid-item"><label>TIME</label><span contenteditable="true" spellcheck="false">10:45 AM</span></div>
-                <div class="bp-grid-item"><label>GATE</label><span contenteditable="true" spellcheck="false">G14</span></div>
-                <div class="bp-grid-item"><label>SEAT</label><span contenteditable="true" spellcheck="false">01A</span></div>
-                <div class="bp-grid-item"><label>REMARKS</label><span contenteditable="true" spellcheck="false">OK</span></div>
+                <div class="bp-pax"><span class="lbl e">Passenger</span><span class="val e">Last / First</span></div>
+                <div><span class="lbl e">Flight</span><span class="val e">FL081</span></div>
+                <div><span class="lbl e">Date</span><span class="val e">19 SEP 2026</span></div>
+                <div><span class="lbl e">Boards</span><span class="val e">10:15</span></div>
+                <div><span class="lbl e">Gate</span><span class="val e">G14</span></div>
+                <div><span class="lbl e">Seat</span><span class="val e">01A</span></div>
+                <div><span class="lbl e">Group</span><span class="val e">1</span></div>
               </div>
             </div>
           </div>
+          <div class="bp-foot"><span class="e" data-code="SEQ ### · TKT ### #### ####">SEQ 001 · TKT 180 2461 3390</span><span class="e">Gate closes 20 min before departure</span></div>
         </div>
-
-        <div class="bp-stub">
-          <div class="bp-stub-top">BOARDING PASS</div>
-          <!-- FIX: bp-stub-route를 text-grad div로 감싸는 대신 개별 요소에만 적용 → 레이아웃 안정 -->
-          <div class="bp-stub-route">
-            <span class="bp-stub-iata text-grad" contenteditable="true" spellcheck="false">ICN</span>
-            <span style="opacity:0.4;font-size:14px;flex-shrink:0;">➔</span>
-            <span class="bp-stub-iata text-grad" contenteditable="true" spellcheck="false">JFK</span>
+        <div class="bp-stub perf-v">
+          <div class="bp-stub-band">
+            <span class="lbl e">Boarding Pass</span>
+            <div class="bp-stub-route e">ICN → JFK</div>
           </div>
-          <div class="bp-stub-seat-box">
-            <label>SEAT</label>
-            <span class="text-grad" contenteditable="true" spellcheck="false">01A</span>
+          <div class="bp-stub-body">
+            <span class="lbl e">Seat</span>
+            <div class="bp-seat e">01A</div>
+            <div class="bp-stub-grid">
+              <div><span class="lbl e">Gate</span><span class="val e">G14</span></div>
+              <div><span class="lbl e">Boards</span><span class="val e">10:15</span></div>
+            </div>
+            <div class="bp-bc"><div class="barcode" title="눌러서 바코드 새로 뽑기"></div></div>
           </div>
-          <div class="bp-stub-barcode" id="bc-bp"></div>
         </div>
-      </div>
+      </article>
     </div>
-  </div>
+  </section>
 
-  <!-- ── RECEIPT ── -->
-  <div id="view-receipt" class="ticket-wrapper">
-    <div class="ticket-container" id="export-receipt">
-      <div class="rc-ticket">
-        <div class="rc-content">
-          <div class="rc-header">
-            <div class="rc-logo text-grad" contenteditable="true" spellcheck="false">STORE NAME</div>
-            <div class="rc-sub">RECEIPT OF TRANSACTION</div>
+  <!-- ── 3. TRAIN ── -->
+  <section class="view" id="view-train">
+    <div class="stage" id="stage-train">
+      <article class="card tr">
+        <div class="tr-head">
+          <div class="tr-op">
+            <span class="tr-logo"><svg viewBox="0 0 24 24" fill="none" stroke="#2a2623" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="14" rx="4"/><path d="M5 10h14"/><path d="M8.5 21l2-3.5M15.5 21l-2-3.5"/><circle cx="9" cy="13.5" r=".6" fill="#2a2623"/><circle cx="15" cy="13.5" r=".6" fill="#2a2623"/></svg></span>
+            <span class="e">Express Rail</span>
           </div>
+          <div class="tr-kind e">승차권 · TICKET</div>
+        </div>
+        <div class="tr-main">
+          <div>
+            <div class="tr-st-kr e">서울</div>
+            <div class="tr-st-en e">Seoul</div>
+            <div class="tr-time"><small>DEP</small><span class="e">08:00</span></div>
+          </div>
+          <div class="tr-mid">
+            <span class="pill keep e">KTX 101</span>
+            <div class="tr-line"><b></b><i></i><b class="s"></b><i></i><b class="s"></b><i></i><b class="f"></b></div>
+            <span class="tr-dur e">2H 38M</span>
+          </div>
+          <div class="tr-to">
+            <div class="tr-st-kr e">부산</div>
+            <div class="tr-st-en e">Busan</div>
+            <div class="tr-time"><small>ARR</small><span class="e">10:38</span></div>
+          </div>
+        </div>
+        <div class="perf"></div>
+        <div class="tr-grid">
+          <div><span class="lbl e">Date</span><span class="val e">2026.09.19</span></div>
+          <div><span class="lbl e">Car</span><span class="val e">7</span></div>
+          <div class="hi"><span class="lbl e">Seat</span><span class="val e">12A</span></div>
+          <div><span class="lbl e">Class</span><span class="val e">일반실</span></div>
+          <div><span class="lbl e">Fare</span><span class="val e">₩59,800</span></div>
+        </div>
+        <div class="tr-foot">
+          <div class="tr-foot-l"><span class="tr-no e" data-code="NO. ########-####">NO. 26091901-0101</span><span class="tr-tag e">편도 · ONE-WAY</span></div>
+          <div class="barcode" title="눌러서 바코드 새로 뽑기"></div>
+        </div>
+      </article>
+    </div>
+  </section>
 
+  <!-- ── 4. RECEIPT ── -->
+  <section class="view" id="view-receipt">
+    <div class="stage" id="stage-receipt">
+      <article class="rc">
+        <div class="rc-edge" data-dir="top"></div>
+        <div class="rc-paper">
+          <div class="rc-stamp"><b class="e">PAID</b><small>WITH LOVE</small></div>
+          <div class="rc-head">
+            <div class="rc-logo"><span class="e">S</span></div>
+            <div class="rc-store e">Store Name</div>
+            <div class="rc-sub e">RECEIPT OF TRANSACTION</div>
+          </div>
+          <div class="rc-rule"></div>
           <div class="rc-meta">
-            <div class="rc-meta-row"><label>Date:</label><span contenteditable="true" spellcheck="false">2026 / 05 / 25</span></div>
-            <div class="rc-meta-row"><label>Order:</label><span contenteditable="true" spellcheck="false">#00142</span></div>
-            <div class="rc-meta-row"><label>Client:</label><span contenteditable="true" spellcheck="false">NAME A</span></div>
-            <div class="rc-meta-row"><label>Server:</label><span contenteditable="true" spellcheck="false">NAME B</span></div>
+            <div class="rc-row"><span class="e">DATE</span><span class="e">2026.09.19 22:03</span></div>
+            <div class="rc-row"><span class="e">ORDER</span><span class="e" data-code="######">#00142</span></div>
+            <div class="rc-row"><span class="e">CLIENT</span><span class="e">NAME A</span></div>
+            <div class="rc-row"><span class="e">SERVER</span><span class="e">NAME B</span></div>
           </div>
-
-          <div class="img-viewport rc-img-box" id="rc-img-vp" onclick="clickUpload(this)">
-            <input type="file" class="img-upload-trigger" accept="image/*" onchange="handleImgUpload(this,'rc-img-vp')">
-            <div class="img-placeholder"><span>+</span>Photo</div>
-            <img src="" alt="">
-            <div class="img-tools" data-html2canvas-ignore="true">
-              <button class="img-btn" onclick="event.stopPropagation();zoomImg('rc-img-vp',0.1)">+</button>
-              <button class="img-btn" onclick="event.stopPropagation();zoomImg('rc-img-vp',-0.1)">−</button>
-              <button class="img-btn" onclick="event.stopPropagation();clearImg('rc-img-vp')">✕</button>
+          <div class="rc-rule"></div>
+          <div class="ph rc-photo"></div>
+          <div class="rc-rule"></div>
+          <div class="rc-items" id="rc-items">
+            <div class="rc-item">
+              <button class="rc-del" data-ignore title="삭제">✕</button>
+              <span class="name e">ITEM 01</span><span class="qty e">×1</span><i class="lead"></i><span class="amt e">10,000</span>
+            </div>
+            <div class="rc-item">
+              <button class="rc-del" data-ignore title="삭제">✕</button>
+              <span class="name e">ITEM 02</span><span class="qty e">×2</span><i class="lead"></i><span class="amt e">20,000</span>
             </div>
           </div>
-
-          <table class="rc-table" cellspacing="0">
-            <thead><tr><th>ITEM</th><th>AMOUNT</th></tr></thead>
-            <tbody id="rc-tbody">
-              <tr>
-                <td>
-                  <span class="rc-del-btn" data-html2canvas-ignore="true" onclick="this.closest('tr').remove()">✕</span>
-                  <span class="rc-item-name" contenteditable="true" spellcheck="false">ITEM 01</span>
-                  <span class="rc-item-qty" contenteditable="true" spellcheck="false">1 x</span>
-                </td>
-                <td contenteditable="true" spellcheck="false">10,000</td>
-              </tr>
-              <tr>
-                <td>
-                  <span class="rc-del-btn" data-html2canvas-ignore="true" onclick="this.closest('tr').remove()">✕</span>
-                  <span class="rc-item-name" contenteditable="true" spellcheck="false">ITEM 02</span>
-                  <span class="rc-item-qty" contenteditable="true" spellcheck="false">2 x</span>
-                </td>
-                <td contenteditable="true" spellcheck="false">20,000</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <div class="rc-totals">
-            <div class="rc-total-row"><span>Subtotal</span><span>---</span></div>
-            <div class="rc-total-row"><span>Discount / Tax</span><span contenteditable="true" spellcheck="false">0</span></div>
-            <div class="rc-grand-total">
-              <label>TOTAL</label>
-              <span class="text-grad" contenteditable="true" spellcheck="false">30,000</span>
-            </div>
-          </div>
-
-          <div class="rc-footer">
-            <div class="rc-barcode" id="bc-rc"></div>
-            <div class="rc-msg" contenteditable="true" spellcheck="false">HAVE A NICE DAY</div>
+          <div class="rc-rule dbl"></div>
+          <div class="rc-row"><span>SUBTOTAL</span><span id="rc-sub">30,000</span></div>
+          <div class="rc-row" style="margin-top:4px"><span class="e">DISCOUNT</span><span class="e" id="rc-disc">0</span></div>
+          <div class="rc-total"><b class="e">TOTAL</b><span class="rc-total-amt"><small>₩</small><span id="rc-total">30,000</span></span></div>
+          <div class="rc-foot">
+            <div class="barcode" title="눌러서 바코드 새로 뽑기"></div>
+            <div class="rc-no e" data-code="# # # # # · # # # # # #">0 0 1 4 2 · 2 6 0 9 1 9</div>
+            <div class="rc-msg e">Thank you, come again</div>
           </div>
         </div>
-      </div>
+        <div class="rc-edge" data-dir="bottom"></div>
+      </article>
     </div>
-    <button class="add-row-btn" onclick="addReceiptRow()">+ ADD NEW ITEM</button>
-  </div>
+    <button class="add-row" id="add-item">+ 항목 추가</button>
+  </section>
 
+  <p class="hint">글자를 눌러 바로 수정 · 사진 칸을 눌러 추가, 드래그로 위치, 휠·두 손가락으로 확대/축소 · 바코드를 누르면 새로 뽑혀요</p>
 </main>
+
+<div class="dock">
+  <div class="swatches" id="swatches"></div>
+  <span class="divider"></span>
+  <div class="picks">
+    <input type="color" class="pick" id="c1" title="메인 색">
+    <input type="color" class="pick" id="c2" title="보조 색">
+  </div>
+  <span class="divider"></span>
+  <button class="dock-btn" id="reroll" title="바코드와 번호를 랜덤으로 새로 만들기">
+    <svg class="i" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="9" cy="9" r="1" fill="currentColor"/><circle cx="15" cy="9" r="1" fill="currentColor"/><circle cx="9" cy="15" r="1" fill="currentColor"/><circle cx="15" cy="15" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>
+    <span>바코드 새로 뽑기</span>
+  </button>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
-let currentTab = 'movie';
+/*! gifenc 1.0.3 — MIT License, (c) Matt DesLauriers — https://github.com/mattdesl/gifenc */
+window.gifenc=(()=>{var X={signature:"GIF",version:"89a",trailer:59,extensionIntroducer:33,applicationExtensionLabel:255,graphicControlExtensionLabel:249,imageSeparator:44,signatureSize:3,versionSize:3,globalColorTableFlagMask:128,colorResolutionMask:112,sortFlagMask:8,globalColorTableSizeMask:7,applicationIdentifierSize:8,applicationAuthCodeSize:3,disposalMethodMask:28,userInputFlagMask:2,transparentColorFlagMask:1,localColorTableFlagMask:128,interlaceFlagMask:64,idSortFlagMask:32,localColorTableSizeMask:7};function F(t=256){let e=0,s=new Uint8Array(t);return{get buffer(){return s.buffer},reset(){e=0},bytesView(){return s.subarray(0,e)},bytes(){return s.slice(0,e)},writeByte(r){n(e+1),s[e]=r,e++},writeBytes(r,o=0,i=r.length){n(e+i);for(let c=0;c<i;c++)s[e++]=r[c+o]},writeBytesView(r,o=0,i=r.byteLength){n(e+i),s.set(r.subarray(o,o+i),e),e+=i}};function n(r){var o=s.length;if(o>=r)return;var i=1024*1024;r=Math.max(r,o*(o<i?2:1.125)>>>0),o!=0&&(r=Math.max(r,256));let c=s;s=new Uint8Array(r),e>0&&s.set(c.subarray(0,e),0)}}var O=12,J=5003,lt=[0,1,3,7,15,31,63,127,255,511,1023,2047,4095,8191,16383,32767,65535];function at(t,e,s,n,r=F(512),o=new Uint8Array(256),i=new Int32Array(J),c=new Int32Array(J)){let x=i.length,a=Math.max(2,n);o.fill(0),c.fill(0),i.fill(-1);let l=0,f=0,g=a+1,h=g,b=!1,w=h,_=(1<<w)-1,u=1<<g-1,k=u+1,B=u+2,p=0,A=s[0],z=0;for(let y=x;y<65536;y*=2)++z;z=8-z,r.writeByte(a),I(u);let d=s.length;for(let y=1;y<d;y++){t:{let m=s[y],v=(m<<O)+A,M=m<<z^A;if(i[M]===v){A=c[M];break t}let V=M===0?1:x-M;for(;i[M]>=0;)if(M-=V,M<0&&(M+=x),i[M]===v){A=c[M];break t}I(A),A=m,B<1<<O?(c[M]=B++,i[M]=v):(i.fill(-1),B=u+2,b=!0,I(u))}}return I(A),I(k),r.writeByte(0),r.bytesView();function I(y){for(l&=lt[f],f>0?l|=y<<f:l=y,f+=w;f>=8;)o[p++]=l&255,p>=254&&(r.writeByte(p),r.writeBytesView(o,0,p),p=0),l>>=8,f-=8;if((B>_||b)&&(b?(w=h,_=(1<<w)-1,b=!1):(++w,_=w===O?1<<w:(1<<w)-1)),y==k){for(;f>0;)o[p++]=l&255,p>=254&&(r.writeByte(p),r.writeBytesView(o,0,p),p=0),l>>=8,f-=8;p>0&&(r.writeByte(p),r.writeBytesView(o,0,p),p=0)}}}var $=at;function D(t,e,s){return t<<8&63488|e<<2&992|s>>3}function G(t,e,s,n){return t>>4|e&240|(s&240)<<4|(n&240)<<8}function j(t,e,s){return t>>4<<8|e&240|s>>4}function R(t,e,s){return t<e?e:t>s?s:t}function T(t){return t*t}function tt(t,e,s){var n=0,r=1e100;let o=t[e],i=o.cnt,c=o.ac,x=o.rc,a=o.gc,l=o.bc;for(var f=o.fw;f!=0;f=t[f].fw){let h=t[f],b=h.cnt,w=i*b/(i+b);if(!(w>=r)){var g=0;s&&(g+=w*T(h.ac-c),g>=r)||(g+=w*T(h.rc-x),!(g>=r)&&(g+=w*T(h.gc-a),!(g>=r)&&(g+=w*T(h.bc-l),!(g>=r)&&(r=g,n=f))))}}o.err=r,o.nn=n}function Q(){return{ac:0,rc:0,gc:0,bc:0,cnt:0,nn:0,fw:0,bk:0,tm:0,mtm:0,err:0}}function ut(t,e){let s=e==="rgb444"?4096:65536,n=new Array(s),r=t.length;if(e==="rgba4444")for(let o=0;o<r;++o){let i=t[o],c=i>>24&255,x=i>>16&255,a=i>>8&255,l=i&255,f=G(l,a,x,c),g=f in n?n[f]:n[f]=Q();g.rc+=l,g.gc+=a,g.bc+=x,g.ac+=c,g.cnt++}else if(e==="rgb444")for(let o=0;o<r;++o){let i=t[o],c=i>>16&255,x=i>>8&255,a=i&255,l=j(a,x,c),f=l in n?n[l]:n[l]=Q();f.rc+=a,f.gc+=x,f.bc+=c,f.cnt++}else for(let o=0;o<r;++o){let i=t[o],c=i>>16&255,x=i>>8&255,a=i&255,l=D(a,x,c),f=l in n?n[l]:n[l]=Q();f.rc+=a,f.gc+=x,f.bc+=c,f.cnt++}return n}function H(t,e,s={}){let{format:n="rgb565",clearAlpha:r=!0,clearAlphaColor:o=0,clearAlphaThreshold:i=0,oneBitAlpha:c=!1}=s;if(!t||!t.buffer)throw new Error("quantize() expected RGBA Uint8Array data");if(!(t instanceof Uint8Array)&&!(t instanceof Uint8ClampedArray))throw new Error("quantize() expected RGBA Uint8Array data");let x=new Uint32Array(t.buffer),a=s.useSqrt!==!1,l=n==="rgba4444",f=ut(x,n),g=f.length,h=g-1,b=new Uint32Array(g+1);for(var w=0,u=0;u<g;++u){let C=f[u];if(C!=null){var _=1/C.cnt;l&&(C.ac*=_),C.rc*=_,C.gc*=_,C.bc*=_,f[w++]=C}}T(e)/w<.022&&(a=!1);for(var u=0;u<w-1;++u)f[u].fw=u+1,f[u+1].bk=u,a&&(f[u].cnt=Math.sqrt(f[u].cnt));a&&(f[u].cnt=Math.sqrt(f[u].cnt));var k,B,p;for(u=0;u<w;++u){tt(f,u,!1);var A=f[u].err;for(B=++b[0];B>1&&(p=B>>1,!(f[k=b[p]].err<=A));B=p)b[B]=k;b[B]=u}var z=w-e;for(u=0;u<z;){for(var d;;){var I=b[1];if(d=f[I],d.tm>=d.mtm&&f[d.nn].mtm<=d.tm)break;d.mtm==h?I=b[1]=b[b[0]--]:(tt(f,I,!1),d.tm=u);var A=f[I].err;for(B=1;(p=B+B)<=b[0]&&(p<b[0]&&f[b[p]].err>f[b[p+1]].err&&p++,!(A<=f[k=b[p]].err));B=p)b[B]=k;b[B]=I}var y=f[d.nn],m=d.cnt,v=y.cnt,_=1/(m+v);l&&(d.ac=_*(m*d.ac+v*y.ac)),d.rc=_*(m*d.rc+v*y.rc),d.gc=_*(m*d.gc+v*y.gc),d.bc=_*(m*d.bc+v*y.bc),d.cnt+=y.cnt,d.mtm=++u,f[y.bk].fw=y.fw,f[y.fw].bk=y.bk,y.mtm=h}let M=[];var V=0;for(u=0;;++V){let L=R(Math.round(f[u].rc),0,255),C=R(Math.round(f[u].gc),0,255),Y=R(Math.round(f[u].bc),0,255),E=255;if(l){if(E=R(Math.round(f[u].ac),0,255),c){let st=typeof c=="number"?c:127;E=E<=st?0:255}r&&E<=i&&(L=C=Y=o,E=0)}let K=l?[L,C,Y,E]:[L,C,Y];if(xt(M,K)||M.push(K),(u=f[u].fw)==0)break}return M}function xt(t,e){for(let s=0;s<t.length;s++){let n=t[s],r=n[0]===e[0]&&n[1]===e[1]&&n[2]===e[2],o=n.length>=4&&e.length>=4?n[3]===e[3]:!0;if(r&&o)return!0}return!1}function U(t,e){var s=0,n;for(n=0;n<t.length;n++){let r=t[n]-e[n];s+=r*r}return s}function P(t,e){return e>1?Math.round(t/e)*e:t}function et(t,{roundRGB:e=5,roundAlpha:s=10,oneBitAlpha:n=null}={}){let r=new Uint32Array(t.buffer);for(let o=0;o<r.length;o++){let i=r[o],c=i>>24&255,x=i>>16&255,a=i>>8&255,l=i&255;if(c=P(c,s),n){let f=typeof n=="number"?n:127;c=c<=f?0:255}l=P(l,e),a=P(a,e),x=P(x,e),r[o]=c<<24|x<<16|a<<8|l<<0}}function nt(t,e,s="rgb565"){if(!t||!t.buffer)throw new Error("quantize() expected RGBA Uint8Array data");if(!(t instanceof Uint8Array)&&!(t instanceof Uint8ClampedArray))throw new Error("quantize() expected RGBA Uint8Array data");if(e.length>256)throw new Error("applyPalette() only works with 256 colors or less");let n=new Uint32Array(t.buffer),r=n.length,o=s==="rgb444"?4096:65536,i=new Uint8Array(r),c=new Array(o),x=s==="rgba4444";if(s==="rgba4444")for(let a=0;a<r;a++){let l=n[a],f=l>>24&255,g=l>>16&255,h=l>>8&255,b=l&255,w=G(b,h,g,f),_=w in c?c[w]:c[w]=gt(b,h,g,f,e);i[a]=_}else{let a=s==="rgb444"?j:D;for(let l=0;l<r;l++){let f=n[l],g=f>>16&255,h=f>>8&255,b=f&255,w=a(b,h,g),_=w in c?c[w]:c[w]=bt(b,h,g,e);i[l]=_}}return i}function gt(t,e,s,n,r){let o=0,i=1e100;for(let c=0;c<r.length;c++){let x=r[c],a=x[3],l=q(a-n);if(l>i)continue;let f=x[0];if(l+=q(f-t),l>i)continue;let g=x[1];if(l+=q(g-e),l>i)continue;let h=x[2];l+=q(h-s),!(l>i)&&(i=l,o=c)}return o}function bt(t,e,s,n){let r=0,o=1e100;for(let i=0;i<n.length;i++){let c=n[i],x=c[0],a=q(x-t);if(a>o)continue;let l=c[1];if(a+=q(l-e),a>o)continue;let f=c[2];a+=q(f-s),!(a>o)&&(o=a,r=i)}return r}function rt(t,e,s=5){if(!t.length||!e.length)return;let n=t.map(i=>i.slice(0,3)),r=s*s,o=t[0].length;for(let i=0;i<e.length;i++){let c=e[i];c.length<o?c=[c[0],c[1],c[2],255]:c.length>o?c=c.slice(0,3):c=c.slice();let x=N(n,c.slice(0,3),U),a=x[0],l=x[1];l>0&&l<=r&&(t[a]=c)}}function q(t){return t*t}function W(t,e,s=U){let n=Infinity,r=-1;for(let o=0;o<t.length;o++){let i=t[o],c=s(e,i);c<n&&(n=c,r=o)}return r}function N(t,e,s=U){let n=Infinity,r=-1;for(let o=0;o<t.length;o++){let i=t[o],c=s(e,i);c<n&&(n=c,r=o)}return[r,n]}function ot(t,e,s=U){return t[W(t,e,s)]}function ct(t={}){let{initialCapacity:e=4096,auto:s=!0}=t,n=F(e),r=5003,o=new Uint8Array(256),i=new Int32Array(r),c=new Int32Array(r),x=!1;return{reset(){n.reset(),x=!1},finish(){n.writeByte(X.trailer)},bytes(){return n.bytes()},bytesView(){return n.bytesView()},get buffer(){return n.buffer},get stream(){return n},writeHeader:a,writeFrame(l,f,g,h={}){let{transparent:b=!1,transparentIndex:w=0,delay:_=0,palette:u=null,repeat:k=0,colorDepth:B=8,dispose:p=-1}=h,A=!1;if(s?x||(A=!0,a(),x=!0):A=Boolean(h.first),f=Math.max(0,Math.floor(f)),g=Math.max(0,Math.floor(g)),A){if(!u)throw new Error("First frame must include a { palette } option");pt(n,f,g,u,B),it(n,u),k>=0&&dt(n,k)}let z=Math.round(_/10);wt(n,p,z,b,w);let d=Boolean(u)&&!A;ht(n,f,g,d?u:null),d&&it(n,u),yt(n,l,f,g,B,o,i,c)}};function a(){ft(n,"GIF89a")}}function wt(t,e,s,n,r){t.writeByte(33),t.writeByte(249),t.writeByte(4),r<0&&(r=0,n=!1);var o,i;n?(o=1,i=2):(o=0,i=0),e>=0&&(i=e&7),i<<=2;let c=0;t.writeByte(0|i|c|o),S(t,s),t.writeByte(r||0),t.writeByte(0)}function pt(t,e,s,n,r=8){let o=1,i=0,c=Z(n.length)-1,x=o<<7|r-1<<4|i<<3|c,a=0,l=0;S(t,e),S(t,s),t.writeBytes([x,a,l])}function dt(t,e){t.writeByte(33),t.writeByte(255),t.writeByte(11),ft(t,"NETSCAPE2.0"),t.writeByte(3),t.writeByte(1),S(t,e),t.writeByte(0)}function it(t,e){let s=1<<Z(e.length);for(let n=0;n<s;n++){let r=[0,0,0];n<e.length&&(r=e[n]),t.writeByte(r[0]),t.writeByte(r[1]),t.writeByte(r[2])}}function ht(t,e,s,n){if(t.writeByte(44),S(t,0),S(t,0),S(t,e),S(t,s),n){let r=0,o=0,i=Z(n.length)-1;t.writeByte(128|r|o|0|i)}else t.writeByte(0)}function yt(t,e,s,n,r=8,o,i,c){$(s,n,e,r,t,o,i,c)}function S(t,e){t.writeByte(e&255),t.writeByte(e>>8&255)}function ft(t,e){for(var s=0;s<e.length;s++)t.writeByte(e.charCodeAt(s))}function Z(t){return Math.max(Math.ceil(Math.log2(t)),1)}var Bt=ct;return{GIFEncoder:ct,quantize:H,applyPalette:nt};})();
+</script>
+<script>
+const $  = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+let current = 'movie';
 
-function updateGrad() {
-  const c1 = document.getElementById('c1').value;
-  const c2 = document.getElementById('c2').value;
-  const gradString = `linear-gradient(135deg, ${c1}, ${c2})`;
+/* ── Tabs ── */
+$$('.tab').forEach(btn => btn.addEventListener('click', () => {
+  current = btn.dataset.tab;
+  $$('.tab').forEach(b => b.classList.toggle('active', b === btn));
+  $$('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + current));
+}));
 
-  document.documentElement.style.setProperty('--c1', c1);
-  document.documentElement.style.setProperty('--c2', c2);
-  document.documentElement.style.setProperty('--grad', gradString);
+/* ── Colour theme ── */
+const PRESETS = [
+  ['#efa9ba', '#ffe4ea', 'blush'],
+  ['#f0cf86', '#fff5d9', 'butter'],
+  ['#efbd98', '#fce8d8', 'peach'],
+  ['#bfdc9c', '#eef8dc', 'sage'],
+  ['#a9c5e8', '#e6f0ff', 'sky'],
+  ['#c7bde8', '#eee9fb', 'lilac'],
+  ['#c9ab94', '#f3e7dc', 'mocha'],
+];
+PRESETS.forEach(([a, b, name]) => {
+  const s = document.createElement('button');
+  s.className = 'sw';
+  s.title = name;
+  s.style.background = `linear-gradient(135deg, ${a}, ${b})`;
+  s.addEventListener('click', () => setTheme(a, b));
+  $('#swatches').appendChild(s);
+});
+const hex2rgb = h => {
+  h = h.replace('#', '');
+  if (h.length === 3) h = [...h].map(c => c + c).join('');
+  const n = parseInt(h, 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+};
+const mix = (a, b, t) => {
+  const A = hex2rgb(a), B = hex2rgb(b);
+  return `rgb(${A.map((v, i) => Math.round(v * t + B[i] * (1 - t))).join(',')})`;
+};
+const rgba = (a, al) => `rgba(${hex2rgb(a).join(',')},${al})`;
+function setTheme(a, b) {
+  const root = document.documentElement.style;
+  root.setProperty('--c1', a);
+  root.setProperty('--c2', b);
+  root.setProperty('--grad-soft', `linear-gradient(135deg, ${mix(a, '#fffdf9', .22)}, ${mix(b, '#fffdf9', .6)})`);
+  root.setProperty('--accent-line', mix(a, '#ece6de', .5));
+  root.setProperty('--c1-deep', mix(a, '#3f3833', .6));
+  root.setProperty('--c1-a12', rgba(a, .16));
+  root.setProperty('--paper', mix(b, '#f3ede6', .35));
+  root.setProperty('--blob1', rgba(a, .30));
+  root.setProperty('--blob2', rgba(b, .85));
+  $('#c1').value = a;
+  $('#c2').value = b;
+  $$('.sw').forEach((s, i) => s.classList.toggle('active', PRESETS[i][0] === a && PRESETS[i][1] === b));
+}
+$('#c1').addEventListener('input', () => setTheme($('#c1').value, $('#c2').value));
+$('#c2').addEventListener('input', () => setTheme($('#c1').value, $('#c2').value));
+setTheme(PRESETS[0][0], PRESETS[0][1]);
 
-  let styleTag = document.getElementById('dynamic-grad-style');
-  if (!styleTag) {
-    styleTag = document.createElement('style');
-    styleTag.id = 'dynamic-grad-style';
-    document.head.appendChild(styleTag);
+/* ── Editable text ── */
+function makeEditable(root = document) {
+  $$('.e', root).forEach(el => { el.contentEditable = 'true'; el.spellcheck = false; });
+}
+makeEditable();
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.isContentEditable) { e.preventDefault(); e.target.blur(); }
+});
+document.addEventListener('paste', e => {
+  if (!e.target.isContentEditable) return;
+  e.preventDefault();
+  const t = (e.clipboardData || window.clipboardData).getData('text/plain').replace(/[\r\n]+/g, ' ');
+  document.execCommand('insertText', false, t);
+});
+
+/* ── Barcodes (random) ── */
+const rint = n => Math.floor(Math.random() * n);
+function drawBarcode(el) {
+  const color = el.dataset.color || '#2a2623';
+  let seed = Number(el.dataset.seed || 1);
+  const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+  const widths = [1, 1, 1, 1.5, 2, 2.5, 3];
+  let x = 0, bars = '';
+  const bar = w => { bars += `<rect x="${x}" y="0" width="${w}" height="10" fill="${color}"/>`; };
+  // start guard
+  bar(1); x += 2; bar(1); x += 2.5;
+  const n = 52 + Math.floor(rnd() * 14);
+  for (let i = 0; i < n; i++) {
+    const w = widths[Math.floor(rnd() * widths.length)];
+    if (i % 2 === 0) bar(w);
+    x += w;
   }
-  
-  styleTag.textContent = `
-    .text-grad, .logo-icon {
-        background-image: ${gradString} !important;
-        -webkit-background-clip: text !important;
-        background-clip: text !important;
-        -webkit-text-fill-color: transparent !important;
-        color: transparent !important;
-    }
-    span.text-grad, .logo-icon {
-        display: inline-block;
-    }
-    .bg-grad, .export-btn {
-        background-image: ${gradString} !important;
-    }
-    .bp-flight-icon svg path {
-        fill: ${c1} !important;
-    }
-  `;
+  // end guard
+  x += 1; bar(1); x += 2; bar(1); x += 1;
+  el.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${x} 10" preserveAspectRatio="none">${bars}</svg>`;
 }
-
-function switchTab(tab, btn) {
-  currentTab = tab;
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelectorAll('.ticket-wrapper').forEach(v => v.classList.remove('active'));
-  document.getElementById(`view-${tab}`).classList.add('active');
+function rerollBarcode(el) { el.dataset.seed = 1 + rint(233000); drawBarcode(el); }
+function rerollCodes(root) {
+  $$('.barcode', root).forEach(rerollBarcode);
+  $$('[data-code]', root).forEach(el => {
+    let first = true;
+    el.textContent = el.dataset.code.replace(/#/g, () => { const d = first ? 1 + rint(9) : rint(10); first = false; return d; });
+    if (el.closest('.rc-meta')) el.textContent = '#' + el.textContent.slice(1);
+  });
 }
+$$('.barcode').forEach(el => el.addEventListener('click', () => rerollBarcode(el)));
+rerollCodes(document);
+$('#reroll').addEventListener('click', () => {
+  const btn = $('#reroll');
+  rerollCodes($('#view-' + current));
+  btn.classList.remove('spin'); void btn.offsetWidth; btn.classList.add('spin');
+});
 
-function addReceiptRow() {
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td>
-      <span class="rc-del-btn" data-html2canvas-ignore="true" onclick="this.closest('tr').remove()">✕</span>
-      <span class="rc-item-name" contenteditable="true" spellcheck="false">NEW ITEM</span>
-      <span class="rc-item-qty" contenteditable="true" spellcheck="false">1 x</span>
-    </td>
-    <td contenteditable="true" spellcheck="false">0</td>`;
-  document.getElementById('rc-tbody').appendChild(tr);
-}
-
-function drawBarcode(id, w, h) {
-  const pat = [2,1,3,1,2,1,1,2,3,1,2,1,1,3,2,1,1,2,1,3,1,2,3,1,1,2,1,3,2,1,1,2,3,1,2,1,1,2,3,1,2,1,2,1,3,1,2];
-  let bars = '', x = 0, count = Math.floor(w / 5);
-  for (let i = 0; i < count; i++) {
-    const bw = pat[i % pat.length];
-    bars += `<rect x="${x}" y="0" width="${bw}" height="${h}" fill="#333"/>`;
-    x += bw + 1.5;
+/* ── Receipt zig-zag edges ── */
+function drawEdge(el) {
+  const W = 310, s = 8, h = 7, top = el.dataset.dir === 'top';
+  let d = top ? `M0 ${h}` : 'M0 0';
+  for (let x = 0; x < W; x += s) {
+    d += top ? ` L${x + s / 2} 0 L${x + s} ${h}` : ` L${x + s / 2} ${h} L${x + s} 0`;
   }
-  document.getElementById(id).innerHTML =
-    `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 ${x} ${h}">${bars}</svg>`;
+  d += ' Z';
+  el.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${h}" height="${h}" preserveAspectRatio="none"><path d="${d}" fill="#fffdf9"/></svg>`;
 }
-drawBarcode('bc-mv', 300, 40);
-drawBarcode('bc-bp', 180, 30);
-drawBarcode('bc-rc', 260, 44);
+$$('.rc-edge').forEach(drawEdge);
 
-function clickUpload(vp) {
-  if (vp.dataset.hasImg === '1') return;
-  vp.querySelector('input[type=file]').click();
-}
-
-function handleImgUpload(input, vpId) {
-  const file = input.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    const vp = document.getElementById(vpId);
-    const img = vp.querySelector('img');
-    img.src = e.target.result;
-    img.onload = () => {
-      fitImgToCover(img, vp);
-      img.style.display = 'block';
-      vp.querySelector('.img-placeholder').style.display = 'none';
-      img.dataset.x = 0; img.dataset.y = 0; img.dataset.scale = 1;
-      applyTransform(img);
-      vp.dataset.hasImg = '1';
-    };
+/* ── Photo slots ── */
+function setupPhoto(vp) {
+  vp.innerHTML = `
+    <input type="file" accept="image/*">
+    <div class="ph-empty">+ Photo</div>
+    <img alt="">
+    <div class="ph-tools" data-ignore>
+      <button data-a="replace" title="사진 교체">↻</button>
+      <button data-a="in" title="확대">+</button>
+      <button data-a="out" title="축소">−</button>
+      <button data-a="clear" title="삭제">✕</button>
+    </div>`;
+  const input = $('input', vp), img = $('img', vp);
+  const st = { x: 0, y: 0, s: 1, w: 0, h: 0, bl: 0, bt: 0 };
+  vp._st = st;
+  // keep the photo covering the whole slot: no zooming out past "cover", no dragging past an edge
+  const clamp = () => {
+    st.s = Math.min(5, Math.max(1, st.s));
+    const mx = Math.max(0, (st.w * st.s - vp.offsetWidth) / 2);
+    const my = Math.max(0, (st.h * st.s - vp.offsetHeight) / 2);
+    st.x = Math.min(mx, Math.max(-mx, st.x));
+    st.y = Math.min(my, Math.max(-my, st.y));
   };
-  reader.readAsDataURL(file);
-}
+  const apply = () => { clamp(); img.style.transform = `translate(${st.x}px, ${st.y}px) scale(${st.s})`; };
 
-function clearImg(vpId) {
-  const vp = document.getElementById(vpId);
-  const img = vp.querySelector('img');
-  img.removeAttribute('src');
-  img.style.display = 'none';
-  vp.querySelector('.img-placeholder').style.display = 'flex';
-  vp.querySelector('input[type=file]').value = '';
-  vp.dataset.hasImg = '0';
-}
-
-function zoomImg(vpId, delta) {
-  const vp = document.getElementById(vpId);
-  if (vp.dataset.hasImg !== '1') return;
-  const img = vp.querySelector('img');
-  let s = Math.max(0.1, Math.min(parseFloat(img.dataset.scale || 1) + delta, 5));
-  img.dataset.scale = s;
-  applyTransform(img);
-}
-
-function fitImgToCover(img, vp) {
-  const vpW = vp.offsetWidth, vpH = vp.offsetHeight;
-  const nW = img.naturalWidth || vpW, nH = img.naturalHeight || vpH;
-  const scale = Math.max(vpW / nW, vpH / nH);
-  const w = nW * scale, h = nH * scale;
-  img.style.width  = w + 'px';
-  img.style.height = h + 'px';
-  img.style.left = ((vpW - w) / 2) + 'px';
-  img.style.top  = ((vpH - h) / 2) + 'px';
-  img.dataset.baseLeft = (vpW - w) / 2;
-  img.dataset.baseTop  = (vpH - h) / 2;
-}
-
-function applyTransform(img) {
-  const tx = parseFloat(img.dataset.x || 0);
-  const ty = parseFloat(img.dataset.y || 0);
-  const sc = parseFloat(img.dataset.scale || 1);
-  img.style.transform = `translate(${tx}px,${ty}px) scale(${sc})`;
-  img.style.transformOrigin = 'center center';
-}
-
-document.querySelectorAll('[contenteditable="true"]').forEach(el => {
-  el.addEventListener('keydown', e => {
-    if (e.key === 'Enter') { e.preventDefault(); }
+  vp.addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (b) {
+      e.stopPropagation();
+      const a = b.dataset.a;
+      if (a === 'replace') input.click();
+      if (a === 'in')  { st.s = Math.min(5, st.s + 0.1); apply(); }
+      if (a === 'out') { st.s = st.s - 0.1; apply(); }
+      if (a === 'clear') { vp.classList.remove('has'); img.removeAttribute('src'); input.value = ''; }
+      return;
+    }
+    if (!vp.classList.contains('has')) input.click();
   });
-  el.addEventListener('paste', e => {
-    e.preventDefault();
-    const text = (e.clipboardData || window.clipboardData).getData('text/plain').replace(/\n|\r/g, ' ');
-    document.execCommand('insertText', false, text);
-  });
-});
 
-document.querySelectorAll('.img-viewport').forEach(vp => {
-  const img = vp.querySelector('img');
-  let drag = false, sx, sy, ix, iy;
-  vp.addEventListener('mousedown', e => {
-    if (vp.dataset.hasImg !== '1' || e.target.tagName === 'BUTTON') return;
-    drag = true; sx = e.clientX; sy = e.clientY;
-    ix = parseFloat(img.dataset.x || 0); iy = parseFloat(img.dataset.y || 0);
+  input.addEventListener('change', () => {
+    const f = input.files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      img.onload = () => {
+        const W = vp.offsetWidth, H = vp.offsetHeight;
+        const k = Math.max(W / img.naturalWidth, H / img.naturalHeight);
+        st.w = img.naturalWidth * k;  st.h = img.naturalHeight * k;
+        st.bl = (W - st.w) / 2;       st.bt = (H - st.h) / 2;
+        Object.assign(img.style, { width: st.w + 'px', height: st.h + 'px', left: st.bl + 'px', top: st.bt + 'px' });
+        st.x = 0; st.y = 0; st.s = 1;
+        apply();
+        vp.classList.add('has');
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(f);
   });
-  window.addEventListener('mousemove', e => {
-    if (!drag) return;
-    img.dataset.x = ix + e.clientX - sx;
-    img.dataset.y = iy + e.clientY - sy;
-    applyTransform(img);
+
+  // drag with one finger / mouse, pinch with two fingers
+  const pts = new Map();
+  let drag = null, pinch = null;
+  const dist = () => { const [a, b] = [...pts.values()]; return Math.hypot(a.x - b.x, a.y - b.y) || 1; };
+  vp.addEventListener('pointerdown', e => {
+    if (!vp.classList.contains('has') || e.target.closest('button')) return;
+    vp.setPointerCapture(e.pointerId);
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pts.size === 2) { drag = null; pinch = { d: dist(), s: st.s }; }
+    else if (pts.size === 1) drag = { px: e.clientX, py: e.clientY, x: st.x, y: st.y };
   });
-  window.addEventListener('mouseup', () => drag = false);
+  vp.addEventListener('pointermove', e => {
+    if (!pts.has(e.pointerId)) return;
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pinch && pts.size >= 2) { st.s = pinch.s * dist() / pinch.d; apply(); }
+    else if (drag) { st.x = drag.x + e.clientX - drag.px; st.y = drag.y + e.clientY - drag.py; apply(); }
+  });
+  const end = e => {
+    pts.delete(e.pointerId);
+    pinch = null;
+    if (pts.size === 1) { const [q] = pts.values(); drag = { px: q.x, py: q.y, x: st.x, y: st.y }; }
+    else drag = null;
+  };
+  vp.addEventListener('pointerup', end);
+  vp.addEventListener('pointercancel', end);
   vp.addEventListener('wheel', e => {
-    if (vp.dataset.hasImg !== '1') return;
+    if (!vp.classList.contains('has')) return;
     e.preventDefault();
-    let s = Math.max(0.2, Math.min(parseFloat(img.dataset.scale || 1) - e.deltaY * 0.002, 5));
-    img.dataset.scale = s; applyTransform(img);
-  });
-});
-
-function renderViewport(vp) {
-  const img = vp.querySelector('img');
-  const vpW = vp.offsetWidth  || 1;
-  const vpH = vp.offsetHeight || 1;
-  const DPR = window.devicePixelRatio > 1 ? window.devicePixelRatio : 2;
-
-  const oc  = document.createElement('canvas');
-  oc.width  = vpW * DPR;
-  oc.height = vpH * DPR;
-  const ctx = oc.getContext('2d');
-  ctx.scale(DPR, DPR);
-
-  const dW = parseFloat(img.style.width)  || img.naturalWidth  || vpW;
-  const dH = parseFloat(img.style.height) || img.naturalHeight || vpH;
-  const baseLeft = parseFloat(img.dataset.baseLeft || 0);
-  const baseTop  = parseFloat(img.dataset.baseTop  || 0);
-  const tx = parseFloat(img.dataset.x || 0);
-  const ty = parseFloat(img.dataset.y || 0);
-  const sc = parseFloat(img.dataset.scale || 1);
-
-  ctx.save();
-  ctx.beginPath();
-  const r = parseFloat(getComputedStyle(vp).borderRadius) || 0;
-  if (ctx.roundRect) ctx.roundRect(0, 0, vpW, vpH, r); else ctx.rect(0, 0, vpW, vpH);
-  ctx.clip();
-
-  const cx = baseLeft + dW / 2 + tx;
-  const cy = baseTop  + dH / 2 + ty;
-  ctx.translate(cx, cy);
-  ctx.scale(sc, sc);
-  ctx.drawImage(img, -dW / 2, -dH / 2, dW, dH);
-  ctx.restore();
-  return oc;
+    st.s = st.s - e.deltaY * 0.0015;
+    apply();
+  }, { passive: false });
 }
+$$('.ph').forEach(setupPhoto);
 
-async function renderGradTextToDataURL(snap, c1, c2) {
-  const fsPx       = parseFloat(snap.fontSize) || 16;
-  const fontFamily = snap.fontFamily || 'sans-serif';
-  const fontWeight = snap.fontWeight || '400';
-  const fontStyle  = snap.fontStyle  || 'normal';
-  const lsPx       = parseFloat(snap.letterSpacing) || 0;
-  const DPR        = window.devicePixelRatio > 1 ? window.devicePixelRatio : 2;
-
-  /* FIX: 상하 패딩 추가 → 디센더/어센더 클리핑 방지 */
-  const VPAD = Math.ceil(fsPx * 0.3);
-  const w = Math.ceil(snap.width)  || 300;
-  const h = Math.ceil(snap.height) + VPAD * 2 || Math.ceil(fsPx * 1.8);
-
-  const c   = document.createElement('canvas');
-  c.width   = w * DPR;
-  c.height  = h * DPR;
+function renderPhoto(vp, scale) {
+  const st = vp._st, img = $('img', vp);
+  const W = vp.offsetWidth, H = vp.offsetHeight;
+  const c = document.createElement('canvas');
+  c.width = W * scale; c.height = H * scale;
   const ctx = c.getContext('2d');
-  ctx.scale(DPR, DPR);
-
-  const grad = ctx.createLinearGradient(0, 0, w, h);
-  grad.addColorStop(0, c1);
-  grad.addColorStop(1, c2);
-  ctx.fillStyle = grad;
-
-  ctx.font         = `${fontStyle} ${fontWeight} ${fsPx}px ${fontFamily}`;
-  ctx.textBaseline = 'top';
-  if ('letterSpacing' in ctx) ctx.letterSpacing = lsPx + 'px';
-
-  const align = snap.textAlign || 'left';
-  ctx.textAlign = align;
-  const x = align === 'center' ? w / 2 : align === 'right' ? w : 0;
-
-  const lines = snap.text.split('\n').filter(l => l.trim() !== '');
-  const lineH = fsPx * 1.3;
-  /* FIX: 수직 패딩 반영 */
-  lines.forEach((line, i) => {
-    ctx.fillText(line.trim(), x, VPAD + i * lineH);
-  });
-
-  return { dataURL: c.toDataURL('image/png'), w, h };
+  ctx.scale(scale, scale);
+  const r = parseFloat(getComputedStyle(vp).borderTopLeftRadius) || 0;
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(0, 0, W, H, r); else ctx.rect(0, 0, W, H);
+  ctx.clip();
+  ctx.translate(st.bl + st.w / 2 + st.x, st.bt + st.h / 2 + st.y);
+  ctx.scale(st.s, st.s);
+  ctx.drawImage(img, -st.w / 2, -st.h / 2, st.w, st.h);
+  return c.toDataURL('image/png');
 }
 
-async function exportPNG() {
-  if (document.activeElement) document.activeElement.blur();
+/* ── Receipt: auto totals ── */
+const toNum = s => { const n = parseFloat(String(s).replace(/[^0-9.\-]/g, '')); return isNaN(n) ? 0 : n; };
+const fmt = n => n.toLocaleString('ko-KR');
+function recalc() {
+  const sub = $$('#rc-items .amt').reduce((a, el) => a + toNum(el.textContent), 0);
+  const disc = toNum($('#rc-disc').textContent);
+  $('#rc-sub').textContent = fmt(sub);
+  $('#rc-total').textContent = fmt(sub - Math.abs(disc));
+}
+$('#view-receipt').addEventListener('input', e => {
+  if (e.target.classList.contains('amt') || e.target.id === 'rc-disc') recalc();
+});
+$('#rc-items').addEventListener('click', e => {
+  const b = e.target.closest('.rc-del');
+  if (b) { b.closest('.rc-item').remove(); recalc(); }
+});
+$('#add-item').addEventListener('click', () => {
+  const d = document.createElement('div');
+  d.className = 'rc-item';
+  d.innerHTML = `
+    <button class="rc-del" data-ignore title="삭제">✕</button>
+    <span class="name e">NEW ITEM</span><span class="qty e">×1</span><i class="lead"></i><span class="amt e">0</span>`;
+  $('#rc-items').appendChild(d);
+  makeEditable(d);
+  recalc();
+});
+recalc();
 
-  const btn = document.getElementById('saveBtn');
-  btn.disabled = true;
-  btn.textContent = 'SAVING...';
-
+/* ── Export ── */
+// Renders one element (the whole stage, or just the ticket) with html2canvas.
+async function capture(el, scale, bg) {
+  if (typeof html2canvas === 'undefined') throw new Error('저장 도구를 불러오지 못했어요. 인터넷 연결을 확인하고 새로고침해 주세요.');
+  const slots = $$('.ph', el);
+  const shots = slots.map(vp => vp.classList.contains('has') ? renderPhoto(vp, scale) : null);
+  el.setAttribute('data-cap', '1');
+  try {
+    return await html2canvas(el, {
+      scale, backgroundColor: bg, useCORS: true, logging: false,
+      onclone: doc => {
+        const clone = doc.querySelector('[data-cap]');
+        const css = doc.createElement('style');
+        css.textContent = `.view{animation:none!important}.card{box-shadow:0 0 0 1px rgba(60,40,30,.05)!important}.stage{box-shadow:none!important;border-color:transparent!important}.e:not(.keep){background:transparent!important}[data-ignore],.ph-empty,.ph-tools{display:none!important}`;
+        doc.head.appendChild(css);
+        $$('.ph', clone).forEach((vp, i) => {
+          if (!shots[i]) return;
+          const W = slots[i].offsetWidth, H = slots[i].offsetHeight;
+          vp.innerHTML = `<img src="${shots[i]}" style="position:static;display:block;width:${W}px;height:${H}px;transform:none;max-width:none;">`;
+        });
+      },
+    });
+  } finally { el.removeAttribute('data-cap'); }
+}
+function download(blob, ext) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `ticket-${current}-${Date.now()}.${ext}`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+async function busy(btn, fn) {
+  const label = $('span', btn), txt = label.textContent;
+  $$('.save').forEach(b => b.disabled = true);
+  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
   try {
     if (document.fonts) await document.fonts.ready;
-
-    const el = document.getElementById(`export-${currentTab}`);
-    const rootStyle = getComputedStyle(document.documentElement);
-    const c1val = rootStyle.getPropertyValue('--c1').trim() || '#f4b3c2';
-    const c2val = rootStyle.getPropertyValue('--c2').trim() || '#ffe1e8';
-    const DPR   = window.devicePixelRatio > 1 ? window.devicePixelRatio : 2;
-
-    const origGradEls = Array.from(el.querySelectorAll('.text-grad, .logo-icon'));
-    const snapshots = origGradEls.map(ge => {
-      const cs = getComputedStyle(ge);
-      const r  = ge.getBoundingClientRect();
-      return {
-        text:          ge.innerText || ge.textContent || '',
-        fontSize:      cs.fontSize,
-        fontFamily:    cs.fontFamily,
-        fontWeight:    cs.fontWeight,
-        fontStyle:     cs.fontStyle,
-        letterSpacing: cs.letterSpacing,
-        textAlign:     cs.textAlign,
-        display:       cs.display,
-        width:         r.width,
-        height:        r.height,
-      };
-    });
-
-    const gradResults = await Promise.all(
-      snapshots.map(s => renderGradTextToDataURL(s, c1val, c2val))
-    );
-
-    const canvas = await html2canvas(el, {
-      scale: DPR,
-      backgroundColor: '#ffffff',
-      useCORS: true,
-      allowTaint: true,
-      logging: false,
-      onclone: (doc, cloneEl) => {
-        const dynStyle = doc.getElementById('dynamic-grad-style');
-        if (dynStyle) dynStyle.remove();
-
-        const st = doc.createElement('style');
-        st.textContent = `
-          [contenteditable="true"] {
-            border: none !important;
-            background: transparent !important;
-            box-shadow: none !important;
-            outline: none !important;
-          }
-          .text-grad, .logo-icon {
-            background: none !important;
-            background-image: none !important;
-            -webkit-background-clip: initial !important;
-            background-clip: initial !important;
-            -webkit-text-fill-color: initial !important;
-            color: transparent !important;
-            font-size: 0 !important;
-          }
-          .bg-grad {
-            background-image: linear-gradient(135deg, ${c1val}, ${c2val}) !important;
-          }
-          .mv-title, .bp-iata, .bp-stub-iata, .bp-stub-seat-box span, .bp-grid-item.full span {
-            font-family: 'Playfair Display', serif !important;
-          }
-          .mv-header, .mv-info-item label, .mv-info-item span, .mv-stub-text,
-          .bp-airline-name, .bp-class-badge, .bp-grid-item label, .bp-grid-item span,
-          .bp-stub-top, .bp-city-name, .rc-sub, .rc-table th {
-            font-family: 'IBM Plex Mono', monospace !important;
-          }
-          .rc-ticket, .rc-content, .rc-meta, .rc-meta-row span, .rc-table td, .rc-totals,
-          .rc-total-row, .rc-grand-total, .rc-item-name, .rc-item-qty, .rc-footer, .rc-msg {
-            font-family: 'Courier Prime', monospace !important;
-          }
-          .rc-logo { font-family: 'Special Elite', cursive !important; }
-          [data-html2canvas-ignore] { display: none !important; }
-        `;
-        cloneEl.appendChild(st);
-
-        const cloneGradEls = Array.from(cloneEl.querySelectorAll('.text-grad, .logo-icon'));
-        cloneGradEls.forEach((gel, idx) => {
-          const res = gradResults[idx];
-          if (!res) return;
-          const img = doc.createElement('img');
-          img.src = res.dataURL;
-          img.style.cssText = `width:${res.w}px;height:${res.h}px;display:inline-block;vertical-align:middle;max-width:100%;`;
-          gel.style.cssText += ';background:none!important;-webkit-text-fill-color:transparent!important;color:transparent!important;font-size:0!important;padding:0;';
-          gel.innerHTML = '';
-          gel.appendChild(img);
-        });
-
-        const origVPs  = Array.from(el.querySelectorAll('.img-viewport'));
-        const cloneVPs = Array.from(cloneEl.querySelectorAll('.img-viewport'));
-        origVPs.forEach((origVP, i) => {
-          const cloneVP = cloneVPs[i];
-          if (origVP.dataset.hasImg === '1') {
-            const oc  = renderViewport(origVP);
-            const vpW = origVP.offsetWidth, vpH = origVP.offsetHeight;
-            const img = doc.createElement('img');
-            img.src = oc.toDataURL('image/png');
-            img.style.cssText = `width:${vpW}px;height:${vpH}px;display:block;border-radius:${getComputedStyle(origVP).borderRadius};`;
-            cloneVP.innerHTML = '';
-            cloneVP.style.cssText = `overflow:visible;background:transparent;display:block;width:${vpW}px;height:${vpH}px;border:none;`;
-            cloneVP.appendChild(img);
-          }
-        });
-      }
-    });
-
-    const a = document.createElement('a');
-    a.download = `ticket_${currentTab}_${Date.now()}.png`;
-    a.href = canvas.toDataURL('image/png');
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-
+    await fn(t => { label.textContent = t; });
   } catch (err) {
     console.error(err);
-    alert('저장 중 오류가 발생했습니다.\n' + err.message);
+    alert('이미지 저장 중 문제가 생겼어요.\n' + err.message);
   } finally {
-    btn.disabled = false;
-    btn.textContent = 'SAVE IMAGE';
+    $$('.save').forEach(b => b.disabled = false);
+    label.textContent = txt;
   }
 }
+const tick = () => new Promise(r => setTimeout(r, 0));
 
-updateGrad();
+/* PNG */
+$('#save').addEventListener('click', () => busy($('#save'), async say => {
+  say('저장 중…');
+  const stage = $('#stage-' + current);
+  const scale = Math.max(2, window.devicePixelRatio || 1);
+  const canvas = await capture(stage, scale, getComputedStyle(stage).backgroundColor);
+  const out = document.createElement('canvas');
+  out.width = canvas.width; out.height = canvas.height;
+  const octx = out.getContext('2d');
+  const rad = (parseFloat(getComputedStyle(stage).borderTopLeftRadius) || 0) * scale;
+  octx.beginPath();
+  if (octx.roundRect) octx.roundRect(0, 0, out.width, out.height, rad); else octx.rect(0, 0, out.width, out.height);
+  octx.clip();
+  octx.drawImage(canvas, 0, 0);
+  await new Promise(res => out.toBlob(b => { download(b, 'png'); res(); }, 'image/png'));
+}));
+
+/* GIF — the ticket floats gently while a soft light sweeps across it */
+// Floyd–Steinberg dithering against one shared palette: smooth gradients, no colour flicker between frames.
+function makeDitherer(W, H, palette) {
+  const n = palette.length;
+  const pr = new Int16Array(n), pg = new Int16Array(n), pb = new Int16Array(n);
+  palette.forEach((c, i) => { pr[i] = c[0]; pg[i] = c[1]; pb[i] = c[2]; });
+  const cache = new Int16Array(1 << 18).fill(-1);                       // 6-6-6 bit colour key
+  const nearest = (r, g, b) => {
+    const k = (r >> 2) << 12 | (g >> 2) << 6 | (b >> 2);
+    let v = cache[k];
+    if (v < 0) {
+      let best = 1e9;
+      for (let j = 0; j < n; j++) {
+        const dr = r - pr[j], dg = g - pg[j], db = b - pb[j];
+        const d = dr * dr * 2 + dg * dg * 4 + db * db * 3;
+        if (d < best) { best = d; v = j; }
+      }
+      cache[k] = v;
+    }
+    return v;
+  };
+  const buf = new Float32Array(W * H * 3), out = new Uint8Array(W * H);
+  const S = 0.85;                                                       // diffusion strength (keeps text crisp)
+  return data => {
+    for (let i = 0, j = 0; i < data.length; i += 4, j += 3) { buf[j] = data[i]; buf[j + 1] = data[i + 1]; buf[j + 2] = data[i + 2]; }
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        const p = y * W + x, q = p * 3;
+        const r = Math.min(255, Math.max(0, buf[q] + .5 | 0));
+        const g = Math.min(255, Math.max(0, buf[q + 1] + .5 | 0));
+        const b = Math.min(255, Math.max(0, buf[q + 2] + .5 | 0));
+        const idx = nearest(r, g, b);
+        out[p] = idx;
+        const er = (r - pr[idx]) * S, eg = (g - pg[idx]) * S, eb = (b - pb[idx]) * S;
+        if (x + 1 < W) { buf[q + 3] += er * .4375; buf[q + 4] += eg * .4375; buf[q + 5] += eb * .4375; }
+        if (y + 1 < H) {
+          const d = q + W * 3;
+          if (x > 0) { buf[d - 3] += er * .1875; buf[d - 2] += eg * .1875; buf[d - 1] += eb * .1875; }
+          buf[d] += er * .3125; buf[d + 1] += eg * .3125; buf[d + 2] += eb * .3125;
+          if (x + 1 < W) { buf[d + 3] += er * .0625; buf[d + 4] += eg * .0625; buf[d + 5] += eb * .0625; }
+        }
+      }
+    }
+    return out;
+  };
+}
+
+$('#save-gif').addEventListener('click', () => busy($('#save-gif'), async say => {
+  say('준비 중…');
+  const { GIFEncoder, quantize } = window.gifenc;
+
+  const stage = $('#stage-' + current);
+  const ticket = $('.card, .rc', stage);
+  const sr = stage.getBoundingClientRect(), tr = ticket.getBoundingClientRect();
+  const scale = Math.min(2, 1400 / Math.max(sr.width, sr.height));
+  const W = Math.round(sr.width * scale), H = Math.round(sr.height * scale);
+  const mat = getComputedStyle(stage).backgroundColor;
+
+  const tk = await capture(ticket, scale, null);                        // ticket alone, transparent around it
+  const tx = Math.round((tr.left - sr.left) * scale), ty = Math.round((tr.top - sr.top) * scale);
+  const tw = tk.width, th = tk.height;
+
+  const frame = document.createElement('canvas'); frame.width = W; frame.height = H;
+  const ctx = frame.getContext('2d', { willReadFrequently: true });
+  const shine = document.createElement('canvas'); shine.width = tw; shine.height = th;
+  const sctx = shine.getContext('2d');
+  const lift = Math.max(3, Math.round(4 * scale));                     // float height in px
+
+  const N = 48, DELAY = 70;                                             // ≈3.4s loop
+  const draw = i => {
+    const t = i / N;
+    const wave = Math.sin(t * Math.PI * 2);
+    const dy = -Math.round(wave * lift);                                // whole pixels only → sharp text
+
+    sctx.globalCompositeOperation = 'source-over';
+    sctx.clearRect(0, 0, tw, th);
+    sctx.drawImage(tk, 0, 0);
+    const p = t / 0.5;                                                  // light sweep in the first half
+    if (p <= 1) {
+      const e = p * p * (3 - 2 * p);
+      const L = tw + th, c = -0.25 * L + e * 1.5 * L, band = 0.09 * L;
+      const g = sctx.createLinearGradient(c - band, (c - band) * 0.35, c + band, (c + band) * 0.35);
+      g.addColorStop(0, 'rgba(255,255,255,0)');
+      g.addColorStop(0.5, 'rgba(255,255,255,0.42)');
+      g.addColorStop(1, 'rgba(255,255,255,0)');
+      sctx.globalCompositeOperation = 'source-atop';
+      sctx.fillStyle = g;
+      sctx.fillRect(0, 0, tw, th);
+    }
+
+    ctx.fillStyle = mat;
+    ctx.fillRect(0, 0, W, H);
+    ctx.save();
+    ctx.shadowColor = `rgba(60,40,30,${(.2 - wave * .03).toFixed(3)})`;
+    ctx.shadowBlur = Math.round((30 + wave * 6) * scale);
+    ctx.shadowOffsetY = Math.round((16 + wave * 4) * scale);
+    ctx.drawImage(shine, tx, ty + dy);
+    ctx.restore();
+    return ctx.getImageData(0, 0, W, H).data;
+  };
+
+  // one palette from a few representative frames (rest, mid-sweep, top, bottom)
+  say('색 분석 중…');
+  const samples = [0, Math.round(N * .2), Math.round(N * .25), Math.round(N * .75)].map(i => draw(i).slice());
+  const all = new Uint8Array(samples.reduce((a, d) => a + d.length, 0));
+  samples.reduce((o, d) => (all.set(d, o), o + d.length), 0);
+  const palette = quantize(all, 256);
+  const dither = makeDitherer(W, H, palette);
+  await tick();
+
+  const gif = GIFEncoder();
+  for (let i = 0; i < N; i++) {
+    const index = dither(draw(i));
+    gif.writeFrame(index, W, H, i === 0 ? { palette, delay: DELAY } : { delay: DELAY });
+    say(`GIF ${Math.round((i + 1) / N * 100)}%`);
+    await tick();
+  }
+  gif.finish();
+  download(new Blob([gif.bytes()], { type: 'image/gif' }), 'gif');
+}));
 </script>
 </body>
 </html>
